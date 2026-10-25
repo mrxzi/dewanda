@@ -48,9 +48,9 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
   cmd(0x1b, 0x74, 0x00); // ESC t 0 — PC437
   cmd(0x1b, 0x61, 0x01); // center
   cmd(0x1b, 0x21, 0x10); // double height
-  push("DEWANDA\n");
+  push("TERIMAKASIH\n");
   cmd(0x1b, 0x21, 0x00); // normal
-  push("Terima Kasih\n");
+  push("\n");
   cmd(0x1b, 0x61, 0x00); // left
   push(divider("=") + "\n");
 
