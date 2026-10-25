@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef } from "react";
-import { CheckCircle, Share2, Download, Printer } from "lucide-react";
+import { useRef, useState } from "react";
+import { CheckCircle, Share2, Download, Printer, Loader2 } from "lucide-react";
 import { Transaksi } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
+import { printReceiptBluetooth } from "@/lib/bluetooth-print";
 import { useTheme } from "./ThemeProvider";
 
 interface ReceiptProps {
@@ -15,63 +16,20 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [printing, setPrinting] = useState(false);
+  const [printError, setPrintError] = useState<string | null>(null);
 
-  const handlePrint = () => {
-    const content = receiptRef.current;
-    if (!content) return;
+  const handlePrint = async () => {
+    if (printing) return;
+    setPrinting(true);
+    setPrintError(null);
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+    const result = await printReceiptBluetooth(transaksi);
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Struk - ${transaksi.id}</title>
-        <style>
-          body { font-family: 'Courier New', monospace; max-width: 300px; margin: 0 auto; padding: 20px; }
-          .center { text-align: center; }
-          .right { text-align: right; }
-          .bold { font-weight: bold; }
-          .divider { border-top: 1px dashed #ccc; margin: 8px 0; }
-          .row { display: flex; justify-content: space-between; font-size: 12px; margin: 2px 0; }
-          h2 { margin: 10px 0; font-size: 16px; }
-          .zigzag { background: repeating-linear-gradient(135deg, transparent, transparent 5px, #e5e5e5 5px, #e5e5e5 10px); height: 10px; }
-          @media print { body { margin: 0; padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <div class="zigzag"></div>
-        <div class="center">
-          <h2 class="bold">DEWANDA</h2>
-        </div>
-        <div class="divider"></div>
-        <div class="row"><span>ID</span><span>${transaksi.id}</span></div>
-        <div class="row"><span>Waktu</span><span>${transaksi.tanggal} ${transaksi.waktu}</span></div>
-        <div class="row"><span>Nama</span><span>${transaksi.namaCustomer || "-"}</span></div>
-        <div class="row"><span>Kasir</span><span>${transaksi.kasir}</span></div>
-        <div class="divider"></div>
-        ${transaksi.items.map(item => `
-          <div style="margin: 6px 0;">
-            <div class="bold" style="font-size: 12px;">${item.namaBarang}</div>
-            <div class="row"><span>${item.jumlah}x ${new Intl.NumberFormat("id-ID").format(item.hargaJual)}</span><span>${new Intl.NumberFormat("id-ID").format(item.subtotal)}</span></div>
-          </div>
-        `).join("")}
-        <div class="divider"></div>
-        <div class="row"><span>Sub Total</span><span>Rp ${new Intl.NumberFormat("id-ID").format(transaksi.subtotal)}</span></div>
-        <div class="divider"></div>
-        <div class="row bold"><span>Total</span><span>Rp ${new Intl.NumberFormat("id-ID").format(transaksi.total)}</span></div>
-        <div class="row"><span>Cash</span><span>Rp ${new Intl.NumberFormat("id-ID").format(transaksi.cashDibayar)}</span></div>
-        ${transaksi.kembalian > 0 ? `<div class="row"><span>Kembali</span><span>Rp ${new Intl.NumberFormat("id-ID").format(transaksi.kembalian)}</span></div>` : ""}
-        <div class="divider"></div>
-        <div class="center" style="margin: 10px 0; font-size: 12px;">Powered By</div>
-        <div class="center" style="font-size: 10px; color: #000000ff;">Powered by Dewanda Dashboard</div>
-        <div class="zigzag"></div>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
+    setPrinting(false);
+    if (!result.ok) {
+      setPrintError(result.error);
+    }
   };
 
   const handleDownload = () => {
@@ -254,6 +212,9 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
 
       {/* Bottom bar */}
       <div className={`fixed bottom-0 left-0 right-0 border-t px-4 py-3 ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
+        {printError && (
+          <p className="mb-2 text-xs text-red-500 text-center">{printError}</p>
+        )}
         <div className="flex items-center gap-2">
           <button
             onClick={handleShare}
@@ -269,9 +230,15 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
           </button>
           <button
             onClick={handlePrint}
-            className={`p-3 rounded-xl border ${isDark ? "border-slate-600 text-slate-400 hover:bg-slate-700" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
+            disabled={printing}
+            title="Cetak ke RPP02N"
+            className={`p-3 rounded-xl border ${isDark ? "border-slate-600 text-slate-400 hover:bg-slate-700" : "border-slate-200 text-slate-500 hover:bg-slate-50"} disabled:opacity-50`}
           >
-            <Printer className="w-5 h-5" />
+            {printing ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Printer className="w-5 h-5" />
+            )}
           </button>
           <button
             onClick={onDone}
