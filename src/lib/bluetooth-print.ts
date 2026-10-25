@@ -47,21 +47,27 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
   cmd(0x1b, 0x40); // ESC @ init
   cmd(0x1b, 0x74, 0x00); // ESC t 0 — PC437
 
-  // Header: TERIMA KASIH (tebal, tinggi 2x — hemat kertas vs 2x2)
+  // Header: TERIMA KASIH
   cmd(0x1b, 0x61, 0x01); // center
   cmd(0x1b, 0x45, 0x01); // bold
-  cmd(0x1b, 0x21, 0x10); // double height saja
+  cmd(0x1b, 0x47, 0x01); // double-strike
+  cmd(0x1d, 0x21, 0x11); // 2x lebar + 2x tinggi
   push("TERIMA KASIH\n");
-  cmd(0x1b, 0x21, 0x00);
+  cmd(0x1d, 0x21, 0x00);
+  cmd(0x1b, 0x47, 0x00);
   cmd(0x1b, 0x45, 0x00);
+  push("\n"); // jarak kecil di bawah judul
   cmd(0x1b, 0x61, 0x00); // left
   push(divider("=") + "\n");
+  push("\n"); // napas sebelum detail
 
   push(`ID     : ${transaksi.id}\n`);
   push(`Waktu  : ${transaksi.tanggal} ${transaksi.waktu}\n`);
   push(`Nama   : ${transaksi.namaCustomer || "-"}\n`);
   push(`Kasir  : ${transaksi.kasir}\n`);
+  push("\n");
   push(divider() + "\n");
+  push("\n");
 
   for (const item of transaksi.items) {
     push(item.namaBarang.slice(0, PAPER_WIDTH) + "\n");
@@ -71,11 +77,15 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
         formatNum(item.subtotal)
       ) + "\n"
     );
+    push("\n"); // jarak antar item
   }
 
   push(divider() + "\n");
+  push("\n");
   push(row("Sub Total", `Rp ${formatNum(transaksi.subtotal)}`) + "\n");
+  push("\n");
   push(divider() + "\n");
+  push("\n");
   cmd(0x1b, 0x21, 0x08); // emphasized
   push(row("TOTAL", `Rp ${formatNum(transaksi.total)}`) + "\n");
   cmd(0x1b, 0x21, 0x00);
@@ -83,17 +93,21 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
   if (transaksi.kembalian > 0) {
     push(row("Kembali", `Rp ${formatNum(transaksi.kembalian)}`) + "\n");
   }
+  push("\n");
   push(divider() + "\n");
+  push("\n");
 
-  // Footer ringkas
+  // Footer — Powered by dekat dengan NUSAJAYA
   cmd(0x1b, 0x61, 0x01); // center
   push("Powered by\n");
   cmd(0x1b, 0x45, 0x01); // bold
+  cmd(0x1d, 0x21, 0x01); // tinggi 2x
   push("NUSAJAYA\n");
+  cmd(0x1d, 0x21, 0x00);
   cmd(0x1b, 0x45, 0x00);
-  push("\n");
-  cmd(0x1b, 0x64, 0x02); // feed sedikit biar bisa sobek
-  cmd(0x1d, 0x56, 0x00); // cut (jika ada)
+  push("\n\n");
+  cmd(0x1d, 0x56, 0x00); // full cut (jika ada)
+  cmd(0x1b, 0x64, 0x02); // feed akhir singkat
 
   const total = parts.reduce((n, p) => n + p.length, 0);
   const out = new Uint8Array(total);
