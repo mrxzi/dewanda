@@ -17,7 +17,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: "dark",
-  toggleTheme: () => {},
+  toggleTheme: () => { },
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -26,7 +26,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem("dewanda-theme") as Theme | null;
+    const stored = localStorage.getItem("-theme") as Theme | null;
     if (stored) {
       setTheme(stored);
     } else if (window.matchMedia("(prefers-color-scheme: light)").matches) {
@@ -37,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (mounted) {
       document.documentElement.classList.toggle("dark", theme === "dark");
-      localStorage.setItem("dewanda-theme", theme);
+      localStorage.setItem("-theme", theme);
     }
   }, [theme, mounted]);
 

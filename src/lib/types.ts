@@ -4,8 +4,10 @@ export interface Barang {
   kategori: Kategori;
   qty: number;
   hargaSatuan: number;
+  hargaJual: number;
   catatan: string;
   tanggal: string;
+  gambar?: string; // base64 data URL
 }
 
 export type Kategori =
@@ -29,3 +31,35 @@ export type SortOption =
   | "nama-asc"
   | "nama-desc"
   | "qty-desc";
+
+// Cart item for checkout
+export interface CartItem {
+  barang: Barang;
+  jumlah: number;
+}
+
+// Payment method
+export type MetodePembayaran = "tunai" | "non-tunai";
+
+// Transaction record
+export interface Transaksi {
+  id: string;
+  tanggal: string;
+  waktu: string;
+  namaCustomer: string;
+  items: {
+    namaBarang: string;
+    gambar?: string;
+    jumlah: number;
+    hargaSatuan: number;
+    hargaJual: number;
+    subtotal: number;
+  }[];
+  subtotal: number;
+  total: number;
+  keuntungan: number;
+  metodePembayaran: MetodePembayaran;
+  cashDibayar: number;
+  kembalian: number;
+  kasir: string;
+}

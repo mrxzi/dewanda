@@ -15,15 +15,25 @@ export function useBarangStore() {
     fetch("/api/barang")
       .then((res) => res.json())
       .then((items: Barang[]) => {
-        setData(items);
+        // Migrate old data: add hargaJual if missing
+        const migrated = items.map((item) => ({
+          ...item,
+          hargaJual: item.hargaJual || item.hargaSatuan,
+        }));
+        setData(migrated);
         setIsLoaded(true);
       })
       .catch(() => {
         // Fallback to localStorage if API fails (local dev without Redis)
         try {
-          const stored = localStorage.getItem("dewanda-dashboard-data");
+          const stored = localStorage.getItem("-dashboard-data");
           if (stored) {
-            setData(JSON.parse(stored));
+            const items: Barang[] = JSON.parse(stored);
+            const migrated = items.map((item) => ({
+              ...item,
+              hargaJual: item.hargaJual || item.hargaSatuan,
+            }));
+            setData(migrated);
           } else {
             setData(INITIAL_DATA);
           }
@@ -38,7 +48,7 @@ export function useBarangStore() {
   const saveToServer = useCallback((newData: Barang[]) => {
     // Also save to localStorage as cache
     try {
-      localStorage.setItem("dewanda-dashboard-data", JSON.stringify(newData));
+      localStorage.setItem("-dashboard-data", JSON.stringify(newData));
     } catch {
       // ignore
     }

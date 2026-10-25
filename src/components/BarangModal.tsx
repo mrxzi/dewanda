@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { X } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { X, ImagePlus, Trash2 } from "lucide-react";
 import { Barang, Kategori, KATEGORI_LIST } from "@/lib/types";
 import { formatRupiah, generateId } from "@/lib/utils";
 import { useTheme } from "./ThemeProvider";
@@ -25,8 +25,11 @@ export default function BarangModal({
   const [kategori, setKategori] = useState<Kategori>("Jajanan/Snack");
   const [qty, setQty] = useState("");
   const [hargaSatuan, setHargaSatuan] = useState("");
+  const [hargaJual, setHargaJual] = useState("");
   const [catatan, setCatatan] = useState("");
+  const [gambar, setGambar] = useState<string | undefined>(undefined);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (editItem) {
@@ -34,13 +37,17 @@ export default function BarangModal({
       setKategori(editItem.kategori);
       setQty(editItem.qty.toString());
       setHargaSatuan(editItem.hargaSatuan.toString());
+      setHargaJual((editItem.hargaJual || editItem.hargaSatuan).toString());
       setCatatan(editItem.catatan);
+      setGambar(editItem.gambar);
     } else {
       setNama("");
       setKategori("Jajanan/Snack");
       setQty("");
       setHargaSatuan("");
+      setHargaJual("");
       setCatatan("");
+      setGambar(undefined);
     }
     setErrors({});
   }, [editItem, isOpen]);
@@ -54,8 +61,29 @@ export default function BarangModal({
     if (!nama.trim()) e.nama = "Wajib diisi";
     if (!qty || parseInt(qty) <= 0) e.qty = "Harus > 0";
     if (!hargaSatuan || parseInt(hargaSatuan) < 0) e.hargaSatuan = "Tidak valid";
+    if (!hargaJual || parseInt(hargaJual) < 0) e.hargaJual = "Tidak valid";
     setErrors(e);
     return Object.keys(e).length === 0;
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 500 * 1024) {
+        setErrors((prev) => ({ ...prev, gambar: "Maks 500KB" }));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setGambar(reader.result as string);
+        setErrors((prev) => {
+          const { gambar: _, ...rest } = prev;
+          void _;
+          return rest;
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,8 +95,10 @@ export default function BarangModal({
       kategori,
       qty: parseInt(qty),
       hargaSatuan: parseInt(hargaSatuan),
+      hargaJual: parseInt(hargaJual),
       catatan: catatan.trim(),
       tanggal: editItem?.tanggal || new Date().toISOString().slice(0, 10),
+      gambar,
     });
     onClose();
   };
@@ -114,6 +144,44 @@ export default function BarangModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Gambar Produk */}
+          <div>
+            <label className={labelClass}>Gambar Produk</label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+            {gambar ? (
+              <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-slate-300 dark:border-slate-600">
+                <img src={gambar} alt="Preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setGambar(undefined)}
+                  className="absolute top-0.5 right-0.5 p-1 bg-red-500 rounded-full text-white"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className={`flex items-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed text-sm transition-colors ${
+                  isDark
+                    ? "border-slate-600 text-slate-400 hover:border-blue-500 hover:text-blue-400"
+                    : "border-slate-300 text-slate-400 hover:border-blue-500 hover:text-blue-500"
+                }`}
+              >
+                <ImagePlus className="w-5 h-5" />
+                <span>Pilih Gambar</span>
+              </button>
+            )}
+            {errors.gambar && <p className="text-red-400 text-xs mt-1">{errors.gambar}</p>}
+          </div>
+
           <div>
             <label className={labelClass}>Nama Barang</label>
             <input type="text" value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Nama barang..." className={inputClass} />
@@ -127,16 +195,21 @@ export default function BarangModal({
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={labelClass}>Qty</label>
               <input type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="0" className={inputClass} />
               {errors.qty && <p className="text-red-400 text-xs mt-1">{errors.qty}</p>}
             </div>
             <div>
-              <label className={labelClass}>Harga (Rp)</label>
+              <label className={labelClass}>Harga Beli</label>
               <input type="number" min="0" value={hargaSatuan} onChange={(e) => setHargaSatuan(e.target.value)} placeholder="0" className={inputClass} />
               {errors.hargaSatuan && <p className="text-red-400 text-xs mt-1">{errors.hargaSatuan}</p>}
+            </div>
+            <div>
+              <label className={labelClass}>Harga Jual</label>
+              <input type="number" min="0" value={hargaJual} onChange={(e) => setHargaJual(e.target.value)} placeholder="0" className={inputClass} />
+              {errors.hargaJual && <p className="text-red-400 text-xs mt-1">{errors.hargaJual}</p>}
             </div>
           </div>
 

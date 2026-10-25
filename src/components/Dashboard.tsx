@@ -1,22 +1,39 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Grid3X3, ListOrdered, BarChart3, ShoppingCart } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { useBarangStore } from "@/hooks/useBarangStore";
-import { Barang, Kategori, SortOption } from "@/lib/types";
-import { exportCSV } from "@/lib/utils";
+import { useCartStore } from "@/hooks/useCartStore";
+import { useTransaksiStore } from "@/hooks/useTransaksiStore";
+import { Barang, Kategori, SortOption, MetodePembayaran, Transaksi } from "@/lib/types";
+import { exportCSV, generateId } from "@/lib/utils";
 import StatCards from "./StatCards";
 import Toolbar from "./Toolbar";
 import DataTable from "./DataTable";
 import BarangModal from "./BarangModal";
 import ConfirmDialog from "./ConfirmDialog";
+import Checkout from "./Checkout";
+import Payment from "./Payment";
+import Receipt from "./Receipt";
+import TransaksiList from "./TransaksiList";
+import Ringkasan from "./Ringkasan";
+
+type AppView = "produk" | "transaksi" | "ringkasan";
+type SubView = "list" | "checkout" | "payment" | "receipt";
 
 export default function Dashboard() {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
   const store = useBarangStore();
+  const cartStore = useCartStore();
+  const transaksiStore = useTransaksiStore();
 
+  // Navigation
+  const [activeView, setActiveView] = useState<AppView>("produk");
+  const [subView, setSubView] = useState<SubView>("list");
+
+  // Product page state
   const [search, setSearch] = useState("");
   const [kategoriFilter, setKategoriFilter] = useState<Kategori | "Semua">("Semua");
   const [sortOption, setSortOption] = useState<SortOption>("subtotal-desc");
@@ -24,6 +41,18 @@ export default function Dashboard() {
   const [editItem, setEditItem] = useState<Barang | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
+
+  // Checkout / payment state
+  const [checkoutCustomerName, setCheckoutCustomerName] = useState("");
+  const [completedTransaksi, setCompletedTransaksi] = useState<Transaksi | null>(null);
+
+  // Ringkasan date range
+  const [ringkasanStartDate, setRingkasanStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    return d;
+  });
+  const [ringkasanEndDate, setRingkasanEndDate] = useState(() => new Date());
 
   const filteredData = useMemo(
     () => store.getFilteredData(search, kategoriFilter, sortOption),
@@ -46,6 +75,73 @@ export default function Dashboard() {
     store.resetData(); setConfirmReset(false);
   }, [store]);
 
+  // Cart / Checkout flow
+  const handleAddToCart = useCallback((item: Barang) => {
+    cartStore.addToCart(item);
+  }, [cartStore]);
+
+  const handleProceedToCheckout = useCallback(() => {
+    if (cartStore.cart.length === 0) return;
+    setSubView("checkout");
+  }, [cartStore.cart.length]);
+
+  const handleProceedToPayment = useCallback((customerName: string) => {
+    setCheckoutCustomerName(customerName);
+    setSubView("payment");
+  }, []);
+
+  const handlePaymentComplete = useCallback((metode: MetodePembayaran, cashDibayar: number) => {
+    const now = new Date();
+    const transaksi: Transaksi = {
+      id: generateId(),
+      tanggal: now.toISOString().slice(0, 10),
+      waktu: now.toTimeString().slice(0, 5),
+      namaCustomer: checkoutCustomerName,
+      items: cartStore.cart.map((c) => ({
+        namaBarang: c.barang.nama,
+        gambar: c.barang.gambar,
+        jumlah: c.jumlah,
+        hargaSatuan: c.barang.hargaSatuan,
+        hargaJual: c.barang.hargaJual,
+        subtotal: c.jumlah * c.barang.hargaJual,
+      })),
+      subtotal: cartStore.subtotal,
+      total: cartStore.subtotal,
+      keuntungan: cartStore.totalKeuntungan,
+      metodePembayaran: metode,
+      cashDibayar: cashDibayar,
+      kembalian: Math.max(0, cashDibayar - cartStore.subtotal),
+      kasir: "admin",
+    };
+
+    // Deduct stock
+    cartStore.cart.forEach((c) => {
+      store.updateBarang(c.barang.id, { qty: c.barang.qty - c.jumlah });
+    });
+
+    transaksiStore.addTransaksi(transaksi);
+    setCompletedTransaksi(transaksi);
+    cartStore.clearCart();
+    setSubView("receipt");
+  }, [checkoutCustomerName, cartStore, store, transaksiStore]);
+
+  const handleReceiptDone = useCallback(() => {
+    setCompletedTransaksi(null);
+    setSubView("list");
+    setActiveView("produk");
+  }, []);
+
+  const handleViewReceipt = useCallback((tx: Transaksi) => {
+    setCompletedTransaksi(tx);
+    setSubView("receipt");
+  }, []);
+
+  // Ringkasan stats
+  const ringkasanStats = useMemo(
+    () => transaksiStore.getStatsForRange(ringkasanStartDate, ringkasanEndDate),
+    [transaksiStore, ringkasanStartDate, ringkasanEndDate]
+  );
+
   if (!store.isLoaded) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
@@ -54,50 +150,134 @@ export default function Dashboard() {
     );
   }
 
+  // Checkout sub-views (full screen)
+  if (subView === "checkout") {
+    return (
+      <Checkout
+        cart={cartStore.cart}
+        subtotal={cartStore.subtotal}
+        totalItems={cartStore.totalItems}
+        onUpdateQuantity={cartStore.updateQuantity}
+        onRemoveFromCart={cartStore.removeFromCart}
+        onBack={() => setSubView("list")}
+        onProceedPayment={handleProceedToPayment}
+      />
+    );
+  }
+
+  if (subView === "payment") {
+    return (
+      <Payment
+        total={cartStore.subtotal}
+        onBack={() => setSubView("checkout")}
+        onComplete={handlePaymentComplete}
+      />
+    );
+  }
+
+  if (subView === "receipt" && completedTransaksi) {
+    return (
+      <Receipt
+        transaksi={completedTransaksi}
+        onDone={handleReceiptDone}
+      />
+    );
+  }
+
   return (
-    <div className={`min-h-screen transition-colors ${isDark ? "bg-slate-900" : "bg-slate-50"}`}>
+    <div className={`min-h-screen transition-colors pb-20 ${isDark ? "bg-slate-900" : "bg-slate-50"}`}>
       <div className="max-w-5xl mx-auto px-4 py-5 sm:py-8">
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div>
             <h1 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
-              Dashboard Dewanda
+              {activeView === "produk" ? "Produk" : activeView === "transaksi" ? "Transaksi" : "Ringkasan"}
             </h1>
             <p className={`text-xs ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-              Stok Barang
+              {activeView === "produk" ? "Kelola Stok Barang" : activeView === "transaksi" ? "Riwayat Transaksi" : "Laporan Penjualan"}
             </p>
           </div>
-          <button
-            onClick={toggleTheme}
-            className={`p-2 rounded-lg transition-colors ${isDark
-              ? "bg-slate-800 border border-slate-700 text-slate-400 hover:text-white"
-              : "bg-white border border-slate-200 text-slate-400 hover:text-slate-600 shadow-sm"
-              }`}
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Cart button */}
+            {activeView === "produk" && cartStore.totalItems > 0 && (
+              <button
+                onClick={handleProceedToCheckout}
+                className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-green-500 text-white hover:bg-green-600 transition-colors"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                <span className="hidden sm:inline">Checkout</span>
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {cartStore.totalItems}
+                </span>
+              </button>
+            )}
+            <button
+              onClick={toggleTheme}
+              className={`p-2 rounded-lg transition-colors ${isDark
+                ? "bg-slate-800 border border-slate-700 text-slate-400 hover:text-white"
+                : "bg-white border border-slate-200 text-slate-400 hover:text-slate-600 shadow-sm"
+                }`}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </header>
 
-        {/* Stats */}
-        <section className="mb-5">
-          <StatCards totalNilai={store.totalNilai} totalJenis={store.totalJenis} totalQty={store.totalQty} />
-        </section>
+        {/* === PRODUK VIEW === */}
+        {activeView === "produk" && (
+          <>
+            {/* Stats */}
+            <section className="mb-5">
+              <StatCards totalNilai={store.totalNilai} totalJenis={store.totalJenis} totalQty={store.totalQty} />
+            </section>
 
-        {/* Toolbar */}
-        <section className="mb-4">
-          <Toolbar
-            search={search} onSearchChange={setSearch}
-            kategoriFilter={kategoriFilter} onKategoriChange={setKategoriFilter}
-            sortOption={sortOption} onSortChange={setSortOption}
-            onAdd={handleAdd} onExport={() => exportCSV(store.data)}
-            onReset={() => setConfirmReset(true)} totalItems={filteredData.length}
+            {/* Toolbar */}
+            <section className="mb-4">
+              <Toolbar
+                search={search} onSearchChange={setSearch}
+                kategoriFilter={kategoriFilter} onKategoriChange={setKategoriFilter}
+                sortOption={sortOption} onSortChange={setSortOption}
+                onAdd={handleAdd} onExport={() => exportCSV(store.data)}
+                onReset={() => setConfirmReset(true)} totalItems={filteredData.length}
+              />
+            </section>
+
+            {/* Table */}
+            <section>
+              <DataTable
+                data={filteredData}
+                onEdit={handleEdit}
+                onDelete={(id) => setDeleteId(id)}
+                onAddToCart={handleAddToCart}
+              />
+            </section>
+          </>
+        )}
+
+        {/* === TRANSAKSI VIEW === */}
+        {activeView === "transaksi" && (
+          <TransaksiList
+            transaksiList={transaksiStore.transaksiList}
+            onDelete={transaksiStore.deleteTransaksi}
+            onViewReceipt={handleViewReceipt}
           />
-        </section>
+        )}
 
-        {/* Table */}
-        <section>
-          <DataTable data={filteredData} onEdit={handleEdit} onDelete={(id) => setDeleteId(id)} />
-        </section>
+        {/* === RINGKASAN VIEW === */}
+        {activeView === "ringkasan" && (
+          <Ringkasan
+            totalTransaksi={ringkasanStats.totalTransaksi}
+            totalPenjualanKotor={ringkasanStats.totalPenjualanKotor}
+            totalPenjualanBersih={ringkasanStats.totalPenjualanBersih}
+            totalKeuntungan={ringkasanStats.totalKeuntungan}
+            cashTotal={ringkasanStats.cashTotal}
+            nonCashTotal={ringkasanStats.nonCashTotal}
+            dailyData={ringkasanStats.dailyData}
+            startDate={ringkasanStartDate}
+            endDate={ringkasanEndDate}
+            onDateRangeChange={(s, e) => { setRingkasanStartDate(s); setRingkasanEndDate(e); }}
+          />
+        )}
 
         {/* Footer */}
         <footer className="mt-6 text-center">
@@ -106,6 +286,45 @@ export default function Dashboard() {
           </p>
         </footer>
       </div>
+
+      {/* Bottom Navigation */}
+      <nav className={`fixed bottom-0 left-0 right-0 z-30 border-t ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
+        <div className="max-w-5xl mx-auto flex">
+          <button
+            onClick={() => { setActiveView("produk"); setSubView("list"); }}
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+              activeView === "produk"
+                ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
+                : isDark ? "text-slate-500" : "text-slate-400"
+            }`}
+          >
+            <Grid3X3 className="w-5 h-5" />
+            Produk
+          </button>
+          <button
+            onClick={() => { setActiveView("transaksi"); setSubView("list"); }}
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+              activeView === "transaksi"
+                ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
+                : isDark ? "text-slate-500" : "text-slate-400"
+            }`}
+          >
+            <ListOrdered className="w-5 h-5" />
+            Transaksi
+          </button>
+          <button
+            onClick={() => { setActiveView("ringkasan"); setSubView("list"); }}
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
+              activeView === "ringkasan"
+                ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
+                : isDark ? "text-slate-500" : "text-slate-400"
+            }`}
+          >
+            <BarChart3 className="w-5 h-5" />
+            Ringkasan
+          </button>
+        </div>
+      </nav>
 
       {/* Modals */}
       <BarangModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} editItem={editItem} />

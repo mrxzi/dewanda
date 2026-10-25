@@ -13,7 +13,14 @@ export function formatRupiah(amount: number): string {
 }
 
 /**
- * Calculate subtotal of a Barang item
+ * Format number with dots (e.g. 70.000)
+ */
+export function formatNumber(amount: number): string {
+  return new Intl.NumberFormat("id-ID").format(amount);
+}
+
+/**
+ * Calculate subtotal of a Barang item (based on hargaSatuan / cost price)
  */
 export function getSubtotal(item: Barang): number {
   return item.qty * item.hargaSatuan;
@@ -23,7 +30,7 @@ export function getSubtotal(item: Barang): number {
  * Generate a unique ID
  */
 export function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+  return Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 9).toUpperCase();
 }
 
 /**
@@ -39,6 +46,16 @@ export function formatDate(dateStr: string): string {
 }
 
 /**
+ * Format date range for summary header
+ */
+export function formatDateRange(start: Date, end: Date): string {
+  const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
+  const startStr = new Intl.DateTimeFormat("id-ID", { day: "numeric" }).format(start);
+  const endStr = new Intl.DateTimeFormat("id-ID", opts).format(end);
+  return `${startStr} - ${endStr}`;
+}
+
+/**
  * Export data to CSV and trigger download
  */
 export function exportCSV(data: Barang[]): void {
@@ -48,6 +65,7 @@ export function exportCSV(data: Barang[]): void {
     "Kategori",
     "Qty",
     "Harga Satuan",
+    "Harga Jual",
     "Subtotal",
     "Tanggal",
     "Catatan",
@@ -59,6 +77,7 @@ export function exportCSV(data: Barang[]): void {
     item.kategori,
     item.qty,
     item.hargaSatuan,
+    item.hargaJual,
     item.qty * item.hargaSatuan,
     item.tanggal,
     item.catatan,

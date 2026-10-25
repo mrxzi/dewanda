@@ -9,9 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "DASHBOARD BARANG DEWANDA",
+  title: "DASHBOARD BARANG ",
   description:
-    "DASHBOARD BARANG DEWANDA",
+    "DASHBOARD BARANG ",
   keywords: [
     "dashboard",
     "inventaris",

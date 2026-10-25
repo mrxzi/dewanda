@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit3, Trash2, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
 import { Barang } from "@/lib/types";
 import { formatRupiah, getSubtotal, formatDate } from "@/lib/utils";
 import { useTheme } from "./ThemeProvider";
@@ -10,11 +10,12 @@ interface DataTableProps {
   data: Barang[];
   onEdit: (item: Barang) => void;
   onDelete: (id: string) => void;
+  onAddToCart?: (item: Barang) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
 
-export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
+export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataTableProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,14 +65,13 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
               }`}
             >
               <th className="py-3 px-4 text-left w-10">No</th>
-              <th className="py-3 px-4 text-left">Nama</th>
+              <th className="py-3 px-4 text-left">Produk</th>
               <th className="py-3 px-4 text-left">Kategori</th>
               <th className="py-3 px-4 text-right">Qty</th>
-              <th className="py-3 px-4 text-right">Harga</th>
+              <th className="py-3 px-4 text-right">Harga Beli</th>
+              <th className="py-3 px-4 text-right">Harga Jual</th>
               <th className="py-3 px-4 text-right">Subtotal</th>
-              <th className="py-3 px-4 text-left">Tanggal</th>
-              <th className="py-3 px-4 text-left">Catatan</th>
-              <th className="py-3 px-4 text-center w-20">Aksi</th>
+              <th className="py-3 px-4 text-center w-24">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -92,13 +92,26 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                   {startIdx + index + 1}
                 </td>
                 <td className="py-3 px-4">
-                  <span
-                    className={`font-medium ${
-                      isDark ? "text-white" : "text-slate-900"
-                    }`}
-                  >
-                    {item.nama}
-                  </span>
+                  <div className="flex items-center gap-2.5">
+                    {/* Product image */}
+                    <div className={`w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 ${isDark ? "bg-slate-700" : "bg-slate-100"}`}>
+                      {item.gambar ? (
+                        <img src={item.gambar} alt={item.nama} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs">📦</div>
+                      )}
+                    </div>
+                    <div>
+                      <span className={`font-medium ${isDark ? "text-white" : "text-slate-900"}`}>
+                        {item.nama}
+                      </span>
+                      {item.catatan && (
+                        <p className={`text-[10px] truncate max-w-[120px] ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+                          {item.catatan}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </td>
                 <td className="py-3 px-4">
                   <span
@@ -121,6 +134,13 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                 >
                   {formatRupiah(item.hargaSatuan)}
                 </td>
+                <td
+                  className={`py-3 px-4 text-right ${
+                    isDark ? "text-green-400" : "text-green-600"
+                  }`}
+                >
+                  {formatRupiah(item.hargaJual)}
+                </td>
                 <td className="py-3 px-4 text-right">
                   <span
                     className={`font-semibold ${
@@ -130,22 +150,21 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                     {formatRupiah(getSubtotal(item))}
                   </span>
                 </td>
-                <td
-                  className={`py-3 px-4 ${
-                    isDark ? "text-slate-500" : "text-slate-400"
-                  }`}
-                >
-                  {formatDate(item.tanggal)}
-                </td>
-                <td
-                  className={`py-3 px-4 max-w-[160px] truncate ${
-                    isDark ? "text-slate-500" : "text-slate-400"
-                  }`}
-                >
-                  {item.catatan}
-                </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-0.5">
+                    {onAddToCart && item.qty > 0 && (
+                      <button
+                        onClick={() => onAddToCart(item)}
+                        className={`p-1.5 rounded-md transition-colors ${
+                          isDark
+                            ? "hover:bg-slate-700 text-green-400"
+                            : "hover:bg-slate-100 text-green-500"
+                        }`}
+                        title="Tambah ke keranjang"
+                      >
+                        <ShoppingCart className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     <button
                       onClick={() => onEdit(item)}
                       className={`p-1.5 rounded-md transition-colors ${
@@ -187,7 +206,7 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                 : ""
             }`}
           >
-            {/* Row 1: Name + Actions */}
+            {/* Row 1: Image + Name + Actions */}
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2 min-w-0">
                 <span
@@ -197,6 +216,14 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                 >
                   {startIdx + index + 1}
                 </span>
+                {/* Product image */}
+                <div className={`w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 ${isDark ? "bg-slate-700" : "bg-slate-100"}`}>
+                  {item.gambar ? (
+                    <img src={item.gambar} alt={item.nama} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs">📦</div>
+                  )}
+                </div>
                 <span
                   className={`text-sm font-semibold truncate ${
                     isDark ? "text-white" : "text-slate-900"
@@ -206,6 +233,18 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                 </span>
               </div>
               <div className="flex items-center gap-0.5 flex-shrink-0">
+                {onAddToCart && item.qty > 0 && (
+                  <button
+                    onClick={() => onAddToCart(item)}
+                    className={`p-1.5 rounded-md ${
+                      isDark
+                        ? "text-green-400 active:bg-slate-700"
+                        : "text-green-500 active:bg-slate-100"
+                    }`}
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   onClick={() => onEdit(item)}
                   className={`p-1.5 rounded-md ${
@@ -230,7 +269,7 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
             </div>
 
             {/* Row 2: Category + Details */}
-            <div className="flex items-center gap-2 ml-7">
+            <div className="flex items-center gap-2 ml-[52px]">
               <span
                 className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${badgeClass}`}
               >
@@ -241,14 +280,14 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                   isDark ? "text-slate-500" : "text-slate-400"
                 }`}
               >
-                {item.qty} × {formatRupiah(item.hargaSatuan)}
+                {item.qty} × {formatRupiah(item.hargaJual)}
               </span>
               <span
                 className={`text-[11px] font-semibold ml-auto ${
                   isDark ? "text-blue-400" : "text-blue-600"
                 }`}
               >
-                {formatRupiah(getSubtotal(item))}
+                {formatRupiah(item.qty * item.hargaJual)}
               </span>
             </div>
           </div>

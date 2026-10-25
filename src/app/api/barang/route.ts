@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { Barang } from "@/lib/types";
 import { INITIAL_DATA } from "@/lib/data";
 
-const DATA_KEY = "dewanda-barang";
+const DATA_KEY = "-barang";
 
 function getRedis() {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
