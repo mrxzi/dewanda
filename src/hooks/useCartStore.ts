@@ -38,6 +38,24 @@ export function useCartStore() {
     );
   }, []);
 
+  /** Set absolute cart qty for a product (0 removes). Uses latest barang snapshot. */
+  const setQuantity = useCallback((barang: Barang, jumlah: number) => {
+    if (jumlah <= 0) {
+      setCart((prev) => prev.filter((c) => c.barang.id !== barang.id));
+      return;
+    }
+    const capped = Math.min(jumlah, barang.qty);
+    setCart((prev) => {
+      const exists = prev.some((c) => c.barang.id === barang.id);
+      if (exists) {
+        return prev.map((c) =>
+          c.barang.id === barang.id ? { barang, jumlah: capped } : c
+        );
+      }
+      return [...prev, { barang, jumlah: capped }];
+    });
+  }, []);
+
   const clearCart = useCallback(() => {
     setCart([]);
   }, []);
@@ -57,6 +75,7 @@ export function useCartStore() {
     addToCart,
     removeFromCart,
     updateQuantity,
+    setQuantity,
     clearCart,
     totalItems,
     subtotal,

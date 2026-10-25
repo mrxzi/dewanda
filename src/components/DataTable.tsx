@@ -1,8 +1,8 @@
 "use client";
 
-import { Edit3, Trash2, ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { Edit3, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Barang } from "@/lib/types";
-import { formatRupiah, getSubtotal, formatDate } from "@/lib/utils";
+import { formatRupiah, getSubtotal } from "@/lib/utils";
 import { useTheme } from "./ThemeProvider";
 import { useState, useEffect } from "react";
 
@@ -10,12 +10,11 @@ interface DataTableProps {
   data: Barang[];
   onEdit: (item: Barang) => void;
   onDelete: (id: string) => void;
-  onAddToCart?: (item: Barang) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
 
-export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataTableProps) {
+export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [currentPage, setCurrentPage] = useState(1);
@@ -152,19 +151,6 @@ export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataT
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center justify-center gap-0.5">
-                    {onAddToCart && item.qty > 0 && (
-                      <button
-                        onClick={() => onAddToCart(item)}
-                        className={`p-1.5 rounded-md transition-colors ${
-                          isDark
-                            ? "hover:bg-slate-700 text-green-400"
-                            : "hover:bg-slate-100 text-green-500"
-                        }`}
-                        title="Tambah ke keranjang"
-                      >
-                        <ShoppingCart className="w-3.5 h-3.5" />
-                      </button>
-                    )}
                     <button
                       onClick={() => onEdit(item)}
                       className={`p-1.5 rounded-md transition-colors ${
@@ -233,18 +219,6 @@ export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataT
                 </span>
               </div>
               <div className="flex items-center gap-0.5 flex-shrink-0">
-                {onAddToCart && item.qty > 0 && (
-                  <button
-                    onClick={() => onAddToCart(item)}
-                    className={`p-1.5 rounded-md ${
-                      isDark
-                        ? "text-green-400 active:bg-slate-700"
-                        : "text-green-500 active:bg-slate-100"
-                    }`}
-                  >
-                    <ShoppingCart className="w-3.5 h-3.5" />
-                  </button>
-                )}
                 <button
                   onClick={() => onEdit(item)}
                   className={`p-1.5 rounded-md ${
@@ -268,7 +242,7 @@ export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataT
               </div>
             </div>
 
-            {/* Row 2: Category + Details */}
+            {/* Row 2: Category + stok dus saja */}
             <div className="flex items-center gap-2 ml-[52px]">
               <span
                 className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${badgeClass}`}
@@ -276,18 +250,11 @@ export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataT
                 {item.kategori}
               </span>
               <span
-                className={`text-[11px] ${
-                  isDark ? "text-slate-500" : "text-slate-400"
+                className={`text-[11px] font-medium ml-auto ${
+                  isDark ? "text-slate-300" : "text-slate-600"
                 }`}
               >
-                {item.qty} dus × {formatRupiah(item.hargaJual)}
-              </span>
-              <span
-                className={`text-[11px] font-semibold ml-auto ${
-                  isDark ? "text-blue-400" : "text-blue-600"
-                }`}
-              >
-                {formatRupiah(item.qty * item.hargaJual)}
+                {item.qty} dus
               </span>
             </div>
           </div>

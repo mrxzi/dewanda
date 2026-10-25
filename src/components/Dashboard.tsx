@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { Sun, Moon, Grid3X3, ListOrdered, BarChart3, ShoppingCart } from "lucide-react";
+import { Sun, Moon, Grid3X3, ListOrdered, BarChart3 } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 import { useBarangStore } from "@/hooks/useBarangStore";
 import { useCartStore } from "@/hooks/useCartStore";
@@ -13,6 +13,7 @@ import Toolbar from "./Toolbar";
 import DataTable from "./DataTable";
 import BarangModal from "./BarangModal";
 import ConfirmDialog from "./ConfirmDialog";
+import BuatTransaksi from "./BuatTransaksi";
 import Checkout from "./Checkout";
 import Payment from "./Payment";
 import Receipt from "./Receipt";
@@ -20,7 +21,7 @@ import TransaksiList from "./TransaksiList";
 import Ringkasan from "./Ringkasan";
 
 type AppView = "produk" | "transaksi" | "ringkasan";
-type SubView = "list" | "checkout" | "payment" | "receipt";
+type SubView = "list" | "buat" | "checkout" | "payment" | "receipt";
 
 export default function Dashboard() {
   const { theme, toggleTheme } = useTheme();
@@ -76,8 +77,10 @@ export default function Dashboard() {
   }, [store]);
 
   // Cart / Checkout flow
-  const handleAddToCart = useCallback((item: Barang) => {
-    cartStore.addToCart(item);
+  const handleStartTransaksi = useCallback(() => {
+    cartStore.clearCart();
+    setActiveView("transaksi");
+    setSubView("buat");
   }, [cartStore]);
 
   const handleProceedToCheckout = useCallback(() => {
@@ -128,7 +131,7 @@ export default function Dashboard() {
   const handleReceiptDone = useCallback(() => {
     setCompletedTransaksi(null);
     setSubView("list");
-    setActiveView("produk");
+    setActiveView("transaksi");
   }, []);
 
   const handleViewReceipt = useCallback((tx: Transaksi) => {
@@ -150,7 +153,24 @@ export default function Dashboard() {
     );
   }
 
-  // Checkout sub-views (full screen)
+  // Full-screen POS / checkout flow
+  if (subView === "buat") {
+    return (
+      <BuatTransaksi
+        products={store.data}
+        cart={cartStore.cart}
+        totalItems={cartStore.totalItems}
+        onSetQuantity={cartStore.setQuantity}
+        onBack={() => {
+          cartStore.clearCart();
+          setSubView("list");
+          setActiveView("transaksi");
+        }}
+        onOpenCart={handleProceedToCheckout}
+      />
+    );
+  }
+
   if (subView === "checkout") {
     return (
       <Checkout
@@ -159,7 +179,7 @@ export default function Dashboard() {
         totalItems={cartStore.totalItems}
         onUpdateQuantity={cartStore.updateQuantity}
         onRemoveFromCart={cartStore.removeFromCart}
-        onBack={() => setSubView("list")}
+        onBack={() => setSubView("buat")}
         onProceedPayment={handleProceedToPayment}
       />
     );
@@ -198,19 +218,6 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Cart button */}
-            {activeView === "produk" && cartStore.totalItems > 0 && (
-              <button
-                onClick={handleProceedToCheckout}
-                className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-green-500 text-white hover:bg-green-600 transition-colors"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span className="hidden sm:inline">Checkout</span>
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {cartStore.totalItems}
-                </span>
-              </button>
-            )}
             <button
               onClick={toggleTheme}
               className={`p-2 rounded-lg transition-colors ${isDark
@@ -248,7 +255,6 @@ export default function Dashboard() {
                 data={filteredData}
                 onEdit={handleEdit}
                 onDelete={(id) => setDeleteId(id)}
-                onAddToCart={handleAddToCart}
               />
             </section>
           </>
@@ -260,6 +266,7 @@ export default function Dashboard() {
             transaksiList={transaksiStore.transaksiList}
             onDelete={transaksiStore.deleteTransaksi}
             onViewReceipt={handleViewReceipt}
+            onAddTransaksi={handleStartTransaksi}
           />
         )}
 
