@@ -94,7 +94,7 @@ export default function Checkout({
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className={`text-xs min-w-[40px] text-center ${isDark ? "text-slate-300" : "text-slate-600"}`}>
-                        {item.jumlah} × {formatNumber(item.barang.hargaJual)}
+                        {item.jumlah} dus × {formatNumber(item.barang.hargaJual)}
                       </span>
                       <button
                         onClick={() => onUpdateQuantity(item.barang.id, item.jumlah + 1)}
@@ -152,7 +152,7 @@ export default function Checkout({
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className={`text-xs ${isDark ? "text-slate-500" : "text-slate-400"}`}>Grand Total</p>
-            <p className={`text-sm font-medium ${isDark ? "text-slate-300" : "text-slate-600"}`}>{totalItems} Item</p>
+            <p className={`text-sm font-medium ${isDark ? "text-slate-300" : "text-slate-600"}`}>{totalItems} dus</p>
           </div>
           <p className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
             {formatRupiah(total)}

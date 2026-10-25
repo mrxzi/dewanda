@@ -43,13 +43,20 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
   const push = (s: string) => parts.push(enc.encode(s));
   const cmd = (...bytes: number[]) => parts.push(new Uint8Array(bytes));
 
-  // Init + code page + align center
+  // Init + code page
   cmd(0x1b, 0x40); // ESC @ init
   cmd(0x1b, 0x74, 0x00); // ESC t 0 — PC437
+
+  // Header: TERIMA KASIH — lebih besar, tebal, lebih hitam
   cmd(0x1b, 0x61, 0x01); // center
-  cmd(0x1b, 0x21, 0x10); // double height
-  push("TERIMAKASIH\n");
-  cmd(0x1b, 0x21, 0x00); // normal
+  cmd(0x1b, 0x64, 0x01); // feed 1 line (rapi atas)
+  cmd(0x1b, 0x45, 0x01); // emphasized (bold) on
+  cmd(0x1b, 0x47, 0x01); // double-strike on (lebih hitam)
+  cmd(0x1d, 0x21, 0x11); // GS ! — 2x lebar + 2x tinggi
+  push("TERIMA KASIH\n");
+  cmd(0x1d, 0x21, 0x00); // reset ukuran
+  cmd(0x1b, 0x47, 0x00); // double-strike off
+  cmd(0x1b, 0x45, 0x00); // bold off
   push("\n");
   cmd(0x1b, 0x61, 0x00); // left
   push(divider("=") + "\n");
@@ -64,7 +71,7 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
     push(item.namaBarang.slice(0, PAPER_WIDTH) + "\n");
     push(
       row(
-        `${item.jumlah}x ${formatNum(item.hargaJual)}`,
+        `${item.jumlah} dus x ${formatNum(item.hargaJual)}`,
         formatNum(item.subtotal)
       ) + "\n"
     );
@@ -83,7 +90,12 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
   push(divider() + "\n");
 
   cmd(0x1b, 0x61, 0x01); // center
-  push("Powered by NUSAJAYA\n");
+  push("Powered by\n");
+  cmd(0x1b, 0x45, 0x01); // bold on
+  cmd(0x1b, 0x21, 0x08); // emphasized
+  push("NUSAJAYA\n");
+  cmd(0x1b, 0x21, 0x00); // normal
+  cmd(0x1b, 0x45, 0x00); // bold off
   push("\n\n");
   cmd(0x1d, 0x56, 0x00); // GS V 0 — full cut (ignored if no cutter)
   cmd(0x1b, 0x64, 0x03); // feed 3 lines

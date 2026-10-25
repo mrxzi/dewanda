@@ -197,17 +197,17 @@ export default function BarangModal({
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className={labelClass}>Qty</label>
+              <label className={labelClass}>Stok (Dus)</label>
               <input type="number" min="0" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="0" className={inputClass} />
               {errors.qty && <p className="text-red-400 text-xs mt-1">{errors.qty}</p>}
             </div>
             <div>
-              <label className={labelClass}>Harga Beli</label>
+              <label className={labelClass}>Beli / Dus</label>
               <input type="number" min="0" value={hargaSatuan} onChange={(e) => setHargaSatuan(e.target.value)} placeholder="0" className={inputClass} />
               {errors.hargaSatuan && <p className="text-red-400 text-xs mt-1">{errors.hargaSatuan}</p>}
             </div>
             <div>
-              <label className={labelClass}>Harga Jual</label>
+              <label className={labelClass}>Jual / Dus</label>
               <input type="number" min="0" value={hargaJual} onChange={(e) => setHargaJual(e.target.value)} placeholder="0" className={inputClass} />
               {errors.hargaJual && <p className="text-red-400 text-xs mt-1">{errors.hargaJual}</p>}
             </div>

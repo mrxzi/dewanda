@@ -97,7 +97,7 @@ export default function Toolbar({
           <option value="subtotal-asc">Subtotal ↑</option>
           <option value="nama-asc">Nama A–Z</option>
           <option value="nama-desc">Nama Z–A</option>
-          <option value="qty-desc">Qty Terbanyak</option>
+          <option value="qty-desc">Dus Terbanyak</option>
         </select>
 
         <div className="flex gap-1.5 ml-auto">

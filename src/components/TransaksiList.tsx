@@ -54,7 +54,7 @@ export default function TransaksiList({
           <div className={`text-xs space-y-0.5 mb-2 ${isDark ? "text-slate-400" : "text-slate-500"}`}>
             {tx.items.slice(0, 3).map((item, idx) => (
               <p key={idx}>
-                {item.jumlah}x {item.namaBarang}
+                {item.jumlah} dus {item.namaBarang}
               </p>
             ))}
             {tx.items.length > 3 && (

@@ -46,7 +46,7 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
       "--------------------------------",
       ...transaksi.items.flatMap(item => [
         item.namaBarang,
-        `${item.jumlah}x ${new Intl.NumberFormat("id-ID").format(item.hargaJual)}          ${new Intl.NumberFormat("id-ID").format(item.subtotal)}`,
+        `${item.jumlah} dus x ${new Intl.NumberFormat("id-ID").format(item.hargaJual)}     ${new Intl.NumberFormat("id-ID").format(item.subtotal)}`,
       ]),
       "--------------------------------",
       `Sub Total    Rp ${new Intl.NumberFormat("id-ID").format(transaksi.subtotal)}`,
@@ -151,7 +151,7 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
                     {item.namaBarang}
                   </p>
                   <div className={`flex justify-between text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
-                    <span>{item.jumlah}x {new Intl.NumberFormat("id-ID").format(item.hargaJual)}</span>
+                    <span>{item.jumlah} dus × {new Intl.NumberFormat("id-ID").format(item.hargaJual)}</span>
                     <span>{new Intl.NumberFormat("id-ID").format(item.subtotal)}</span>
                   </div>
                 </div>

@@ -67,9 +67,9 @@ export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataT
               <th className="py-3 px-4 text-left w-10">No</th>
               <th className="py-3 px-4 text-left">Produk</th>
               <th className="py-3 px-4 text-left">Kategori</th>
-              <th className="py-3 px-4 text-right">Qty</th>
-              <th className="py-3 px-4 text-right">Harga Beli</th>
-              <th className="py-3 px-4 text-right">Harga Jual</th>
+              <th className="py-3 px-4 text-right">Dus</th>
+              <th className="py-3 px-4 text-right">Beli / Dus</th>
+              <th className="py-3 px-4 text-right">Jual / Dus</th>
               <th className="py-3 px-4 text-right">Subtotal</th>
               <th className="py-3 px-4 text-center w-24">Aksi</th>
             </tr>
@@ -125,7 +125,7 @@ export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataT
                     isDark ? "text-slate-300" : "text-slate-700"
                   }`}
                 >
-                  {item.qty}
+                  {item.qty} dus
                 </td>
                 <td
                   className={`py-3 px-4 text-right ${
@@ -280,7 +280,7 @@ export default function DataTable({ data, onEdit, onDelete, onAddToCart }: DataT
                   isDark ? "text-slate-500" : "text-slate-400"
                 }`}
               >
-                {item.qty} × {formatRupiah(item.hargaJual)}
+                {item.qty} dus × {formatRupiah(item.hargaJual)}
               </span>
               <span
                 className={`text-[11px] font-semibold ml-auto ${
