@@ -71,7 +71,7 @@ export function useTransaksiStore() {
       const totalTransaksi = filtered.length;
       const totalPenjualanKotor = filtered.reduce((sum, t) => sum + t.total, 0);
       const totalKeuntungan = filtered.reduce((sum, t) => sum + t.keuntungan, 0);
-      const totalPenjualanBersih = totalPenjualanKotor;
+      const totalPenjualanBersih = totalPenjualanKotor - totalKeuntungan;
 
       // Payment method breakdown
       const cashTotal = filtered
