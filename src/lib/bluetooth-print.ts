@@ -91,10 +91,11 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
 
   cmd(0x1b, 0x61, 0x01); // center
   push("Powered by\n");
+  cmd(0x1b, 0x64, 0x02); // jarak ke bawah (feed 2 baris)
   cmd(0x1b, 0x45, 0x01); // bold on
-  cmd(0x1b, 0x21, 0x08); // emphasized
+  cmd(0x1d, 0x21, 0x01); // GS ! — tinggi 2x (agak lebih besar)
   push("NUSAJAYA\n");
-  cmd(0x1b, 0x21, 0x00); // normal
+  cmd(0x1d, 0x21, 0x00); // reset ukuran
   cmd(0x1b, 0x45, 0x00); // bold off
   push("\n\n");
   cmd(0x1d, 0x56, 0x00); // GS V 0 — full cut (ignored if no cutter)
