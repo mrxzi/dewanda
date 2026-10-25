@@ -292,33 +292,30 @@ export default function Dashboard() {
         <div className="max-w-5xl mx-auto flex">
           <button
             onClick={() => { setActiveView("produk"); setSubView("list"); }}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-              activeView === "produk"
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${activeView === "produk"
                 ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
                 : isDark ? "text-slate-500" : "text-slate-400"
-            }`}
+              }`}
           >
             <Grid3X3 className="w-5 h-5" />
             Produk
           </button>
           <button
             onClick={() => { setActiveView("transaksi"); setSubView("list"); }}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-              activeView === "transaksi"
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${activeView === "transaksi"
                 ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
                 : isDark ? "text-slate-500" : "text-slate-400"
-            }`}
+              }`}
           >
             <ListOrdered className="w-5 h-5" />
             Transaksi
           </button>
           <button
             onClick={() => { setActiveView("ringkasan"); setSubView("list"); }}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-              activeView === "ringkasan"
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${activeView === "ringkasan"
                 ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
                 : isDark ? "text-slate-500" : "text-slate-400"
-            }`}
+              }`}
           >
             <BarChart3 className="w-5 h-5" />
             Ringkasan

@@ -64,8 +64,8 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
         <div class="row"><span>Cash</span><span>Rp ${new Intl.NumberFormat("id-ID").format(transaksi.cashDibayar)}</span></div>
         ${transaksi.kembalian > 0 ? `<div class="row"><span>Kembali</span><span>Rp ${new Intl.NumberFormat("id-ID").format(transaksi.kembalian)}</span></div>` : ""}
         <div class="divider"></div>
-        <div class="center" style="margin: 10px 0; font-size: 12px;">Terima Kasih!</div>
-        <div class="center" style="font-size: 10px; color: #999;">Powered by Dewanda Dashboard</div>
+        <div class="center" style="margin: 10px 0; font-size: 12px;">Powered By</div>
+        <div class="center" style="font-size: 10px; color: #000000ff;">Powered by Dewanda Dashboard</div>
         <div class="zigzag"></div>
       </body>
       </html>
@@ -99,7 +99,7 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
       "--------------------------------",
       "",
       "        Terima Kasih!",
-      "    Powered by Dewanda Dashboard",
+      "    Powered by NUSAJAYA",
       "================================",
     ];
 
@@ -155,7 +155,7 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
         >
           {/* Zigzag top */}
           <div className={`h-3 ${isDark ? "bg-slate-700" : "bg-slate-100"}`}
-            style={{ 
+            style={{
               maskImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10'%3E%3Cpolygon points='0,10 10,0 20,10'/%3E%3C/svg%3E\")",
               maskSize: "20px 10px",
               maskRepeat: "repeat-x",
@@ -170,7 +170,7 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
             <h3 className={`text-center text-lg font-bold tracking-wider mb-4 ${isDark ? "text-white" : "text-slate-900"}`}
               style={{ fontFamily: "'Courier New', monospace" }}
             >
-              DEWANDA
+              TERIMA KASIH
             </h3>
 
             {/* Transaction details */}
@@ -231,16 +231,16 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
 
             {/* Footer */}
             <div className={`border-t border-dashed pt-3 text-center ${isDark ? "border-slate-600" : "border-slate-300"}`}>
-              <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Terima Kasih!</p>
+              <p className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>Powered By</p>
               <p className={`text-[10px] mt-2 ${isDark ? "text-slate-600" : "text-slate-300"}`}>
-                Powered By <span className="font-bold">Dewanda Dashboard</span>
+                <span className="font-bold text-blue-500">NUSAJAYA</span>
               </p>
             </div>
           </div>
 
           {/* Zigzag bottom */}
           <div className={`h-3 ${isDark ? "bg-slate-700" : "bg-slate-100"}`}
-            style={{ 
+            style={{
               maskImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10'%3E%3Cpolygon points='0,0 10,10 20,0'/%3E%3C/svg%3E\")",
               maskSize: "20px 10px",
               maskRepeat: "repeat-x",
