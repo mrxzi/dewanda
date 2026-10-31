@@ -165,23 +165,11 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
                 </div>
               </div>
 
-              {/* Row 2: Total Dus + Sisa Stok (only 2 columns) */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col items-center justify-center rounded-2xl py-3 bg-[#2d3a8c]">
-                  <p className="text-[9px] font-semibold uppercase tracking-widest text-white/60 mb-0.5">Total Dus</p>
-                  <p className="text-xl font-extrabold text-white tabular-nums">{item.qty}</p>
-                  <p className="text-[9px] text-white/60 mt-0.5">dus</p>
-                </div>
-                <div className={`flex flex-col items-center justify-center rounded-2xl py-3 ${habis ? "bg-red-50" : "bg-slate-50"}`}>
-                  <p className={`text-[9px] font-semibold uppercase tracking-widest mb-0.5 ${habis ? "text-red-400" : "text-slate-400"}`}>Sisa Stok</p>
-                  {habis ? (
-                    <p className="text-sm font-extrabold text-red-500">HABIS</p>
-                  ) : (
-                    <>
-                      <p className="text-xl font-extrabold text-slate-800 tabular-nums">{item.qty}</p>
-                      <p className="text-[9px] text-slate-400 mt-0.5">tersedia</p>
-                    </>
-                  )}
+              {/* Row 2: Total Dus only */}
+              <div className={`flex items-center justify-center rounded-2xl py-3 px-4 bg-[#2d3a8c] ${habis ? "opacity-60" : ""}`}>
+                <div className="text-center">
+                  <p className="text-2xl font-extrabold text-white tabular-nums leading-none">{item.qty}</p>
+                  <p className="text-[9px] text-white/60 mt-0.5">SISA STOCK</p>
                 </div>
               </div>
             </div>

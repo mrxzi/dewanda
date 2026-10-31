@@ -50,9 +50,7 @@ export default function StatCards({
           title="Total Uang"
           value={formatRupiah(totalNilai)}
           icon={
-            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
+            <span className="text-[11px] font-black text-white tracking-tight leading-none">IDR</span>
           }
         />
       </div>

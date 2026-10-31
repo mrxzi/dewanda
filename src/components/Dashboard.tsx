@@ -226,15 +226,10 @@ export default function Dashboard() {
     <div className="min-h-screen transition-colors pb-20 bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 py-5 sm:py-8">
         {/* Header */}
-        <header className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900">
-              {activeView === "produk" ? "Produk" : activeView === "transaksi" ? "Transaksi" : "Ringkasan"}
-            </h1>
-            <p className="text-xs mt-0.5 text-slate-400">
-              {activeView === "produk" ? "Kelola Stok Barang" : activeView === "transaksi" ? "Riwayat Transaksi" : "Laporan Penjualan"}
-            </p>
-          </div>
+        <header className="mb-6">
+          {/* ── NAMA TOKO — ganti teks di bawah ini ── */}
+          <h1 className="text-xl font-black uppercase tracking-wide text-slate-900 leading-tight">
+          </h1>
         </header>
 
         {/* === PRODUK VIEW === */}
@@ -319,16 +314,14 @@ export default function Dashboard() {
               <button
                 key={view}
                 onClick={() => { setActiveView(view); setSubView("list"); }}
-                className={`relative flex-1 flex flex-col items-center gap-1.5 py-4 text-xs font-semibold transition-all ${
-                  isActive
-                    ? "text-[#2d3a8c]"
-                    : "text-slate-400 hover:text-slate-600"
-                }`}
+                className={`relative flex-1 flex flex-col items-center gap-1.5 py-4 text-xs font-semibold transition-all ${isActive
+                  ? "text-[#2d3a8c]"
+                  : "text-slate-400 hover:text-slate-600"
+                  }`}
               >
                 <span
-                  className={`absolute top-0 left-5 right-5 h-[2.5px] rounded-full transition-all duration-300 ${
-                    isActive ? "bg-[#2d3a8c]" : "opacity-0"
-                  }`}
+                  className={`absolute top-0 left-5 right-5 h-[2.5px] rounded-full transition-all duration-300 ${isActive ? "bg-[#2d3a8c]" : "opacity-0"
+                    }`}
                 />
                 {icon}
                 <span>{label}</span>
