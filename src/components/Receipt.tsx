@@ -135,9 +135,9 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
             >
               <div className="flex justify-between"><span>ID</span><span>{transaksi.id}</span></div>
               <div className="flex justify-between"><span>Waktu</span><span>{transaksi.tanggal} {transaksi.waktu}</span></div>
-              <div className="flex justify-between"><span>Nama</span><span>{transaksi.namaCustomer || "-"}</span></div>
+              <div className="flex justify-between"><span>Nama</span><span className="font-bold text-blue-500">{transaksi.namaCustomer || "-"}</span></div>
               {transaksi.alamat && (
-                <div className="flex justify-between"><span>Alamat</span><span className="text-right max-w-[55%]">{transaksi.alamat}</span></div>
+                <div className="flex justify-between"><span>Alamat</span><span className="text-right max-w-[55%] font-bold text-blue-500">{transaksi.alamat}</span></div>
               )}
               <div className="flex justify-between"><span>Kasir</span><span>{transaksi.kasir}</span></div>
             </div>
