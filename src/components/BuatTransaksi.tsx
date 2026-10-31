@@ -155,14 +155,14 @@ export default function BuatTransaksi({
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-3 rounded-xl border p-3 ${
+                  className={`flex items-center gap-3 rounded-xl border p-3 transition-opacity ${
                     isDark
                       ? "bg-slate-800 border-slate-700"
                       : "bg-white border-slate-200 shadow-sm"
-                  }`}
+                  } ${habis ? "opacity-50 grayscale" : ""}`}
                 >
                   <div
-                    className={`w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 ${
+                    className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 ${
                       isDark ? "bg-slate-700" : "bg-slate-100"
                     }`}
                   >
@@ -175,6 +175,11 @@ export default function BuatTransaksi({
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xl">
                         📦
+                      </div>
+                    )}
+                    {habis && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <span className="text-[9px] font-bold text-white uppercase tracking-wide">Habis</span>
                       </div>
                     )}
                   </div>

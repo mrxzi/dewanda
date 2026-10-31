@@ -28,6 +28,7 @@ export default function Checkout({
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [namaCustomer, setNamaCustomer] = useState("");
+  const [showNameError, setShowNameError] = useState(false);
   const [produkOpen, setProdukOpen] = useState(true);
   const [rincianOpen, setRincianOpen] = useState(true);
 
@@ -46,17 +47,27 @@ export default function Checkout({
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-36">
         {/* Nama Customer */}
-        <input
-          type="text"
-          value={namaCustomer}
-          onChange={(e) => setNamaCustomer(e.target.value)}
-          placeholder="Nama customer (opsional)"
-          className={`w-full rounded-xl px-4 py-3 text-sm outline-none border ${
-            isDark
-              ? "bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-              : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
-          }`}
-        />
+        <div className="space-y-1">
+          <input
+            type="text"
+            value={namaCustomer}
+            onChange={(e) => {
+              setNamaCustomer(e.target.value);
+              if (e.target.value.trim()) setShowNameError(false);
+            }}
+            placeholder="Nama customer (wajib diisi)"
+            className={`w-full rounded-xl px-4 py-3 text-sm outline-none border transition-colors ${
+              showNameError
+                ? "border-red-400 bg-red-50 placeholder:text-red-300 text-slate-900"
+                : isDark
+                  ? "bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                  : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
+            }`}
+          />
+          {showNameError && (
+            <p className="text-xs text-red-500 px-1">⚠ Nama customer wajib diisi sebelum melanjutkan.</p>
+          )}
+        </div>
 
         {/* Produk Terpilih */}
         <div className={`rounded-xl border overflow-hidden ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
@@ -159,7 +170,13 @@ export default function Checkout({
           </p>
         </div>
         <button
-          onClick={() => onProceedPayment(namaCustomer)}
+          onClick={() => {
+            if (!namaCustomer.trim()) {
+              setShowNameError(true);
+              return;
+            }
+            onProceedPayment(namaCustomer.trim());
+          }}
           disabled={cart.length === 0}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold bg-[#2d3a8c] text-white hover:bg-[#252f73] disabled:opacity-40 transition-colors"
         >
