@@ -13,7 +13,7 @@ interface CheckoutProps {
   onUpdateQuantity: (barangId: string, jumlah: number) => void;
   onRemoveFromCart: (barangId: string) => void;
   onBack: () => void;
-  onProceedPayment: (namaCustomer: string) => void;
+  onProceedPayment: (namaCustomer: string, alamat: string) => void;
 }
 
 export default function Checkout({
@@ -28,6 +28,7 @@ export default function Checkout({
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [namaCustomer, setNamaCustomer] = useState("");
+  const [alamat, setAlamat] = useState("");
   const [showNameError, setShowNameError] = useState(false);
   const [produkOpen, setProdukOpen] = useState(true);
   const [rincianOpen, setRincianOpen] = useState(true);
@@ -46,27 +47,34 @@ export default function Checkout({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-36">
-        {/* Nama Customer */}
-        <div className="space-y-1">
+        {/* Nama Customer + Alamat */}
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <input
+              type="text"
+              value={namaCustomer}
+              onChange={(e) => {
+                setNamaCustomer(e.target.value);
+                if (e.target.value.trim()) setShowNameError(false);
+              }}
+              placeholder="Nama customer (wajib diisi)"
+              className={`w-full rounded-xl px-4 py-3 text-sm outline-none border transition-colors ${
+                showNameError
+                  ? "border-red-400 bg-red-50 placeholder:text-red-300 text-slate-900"
+                  : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
+              }`}
+            />
+            {showNameError && (
+              <p className="text-xs text-red-500 px-1">⚠ Nama customer wajib diisi sebelum melanjutkan.</p>
+            )}
+          </div>
           <input
             type="text"
-            value={namaCustomer}
-            onChange={(e) => {
-              setNamaCustomer(e.target.value);
-              if (e.target.value.trim()) setShowNameError(false);
-            }}
-            placeholder="Nama customer (wajib diisi)"
-            className={`w-full rounded-xl px-4 py-3 text-sm outline-none border transition-colors ${
-              showNameError
-                ? "border-red-400 bg-red-50 placeholder:text-red-300 text-slate-900"
-                : isDark
-                  ? "bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
-                  : "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
-            }`}
+            value={alamat}
+            onChange={(e) => setAlamat(e.target.value)}
+            placeholder="Alamat pengiriman (opsional)"
+            className="w-full rounded-xl px-4 py-3 text-sm outline-none border bg-white border-slate-200 text-slate-900 placeholder:text-slate-400"
           />
-          {showNameError && (
-            <p className="text-xs text-red-500 px-1">⚠ Nama customer wajib diisi sebelum melanjutkan.</p>
-          )}
         </div>
 
         {/* Produk Terpilih */}
@@ -159,13 +167,18 @@ export default function Checkout({
       </div>
 
       {/* Bottom bar */}
-      <div className={`fixed bottom-0 left-0 right-0 border-t px-4 py-3 ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
+      <div
+        className={`fixed bottom-0 left-0 right-0 border-t px-4 py-4 ${
+          isDark ? "bg-slate-900 border-slate-700/70" : "bg-white border-slate-200"
+        }`}
+        style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+      >
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className={`text-xs ${isDark ? "text-slate-500" : "text-slate-400"}`}>Grand Total</p>
-            <p className={`text-sm font-medium ${isDark ? "text-slate-300" : "text-slate-600"}`}>{totalItems} dus</p>
+            <p className={`text-sm font-semibold ${isDark ? "text-slate-300" : "text-slate-600"}`}>{totalItems} dus</p>
           </div>
-          <p className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+          <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
             {formatRupiah(total)}
           </p>
         </div>
@@ -175,10 +188,10 @@ export default function Checkout({
               setShowNameError(true);
               return;
             }
-            onProceedPayment(namaCustomer.trim());
+            onProceedPayment(namaCustomer.trim(), alamat.trim());
           }}
           disabled={cart.length === 0}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold bg-[#2d3a8c] text-white hover:bg-[#252f73] disabled:opacity-40 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold bg-[#2d3a8c] text-white hover:bg-[#252f73] disabled:opacity-40 transition-all shadow-lg shadow-[#2d3a8c]/30"
         >
           Pilih Pembayaran
           <span className="text-lg">›</span>

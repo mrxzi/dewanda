@@ -64,6 +64,9 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
   push(`ID     : ${transaksi.id}\n`);
   push(`Waktu  : ${transaksi.tanggal} ${transaksi.waktu}\n`);
   push(`Nama   : ${transaksi.namaCustomer || "-"}\n`);
+  if (transaksi.alamat) {
+    push(`Alamat : ${transaksi.alamat}\n`);
+  }
   push(`Kasir  : ${transaksi.kasir}\n`);
   push("\n");
   push(divider() + "\n");

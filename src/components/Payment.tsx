@@ -141,19 +141,24 @@ export default function Payment({ total, onBack, onComplete }: PaymentProps) {
       </div>
 
       {/* Bottom bar */}
-      <div className={`fixed bottom-0 left-0 right-0 border-t px-4 py-3 ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
+      <div
+        className={`fixed bottom-0 left-0 right-0 border-t px-4 py-4 ${
+          isDark ? "bg-slate-900 border-slate-700/70" : "bg-white border-slate-200"
+        }`}
+        style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+      >
         <div className="flex items-center justify-between mb-3">
           <div>
             <p className={`text-xs ${isDark ? "text-slate-500" : "text-slate-400"}`}>Grand Total</p>
           </div>
-          <p className={`text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+          <p className={`text-2xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
             {formatRupiah(total)}
           </p>
         </div>
         <button
           onClick={() => onComplete(metode, metode === "tunai" ? cashAmount : total)}
           disabled={!canPay}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold bg-[#2d3a8c] text-white hover:bg-[#252f73] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold bg-[#2d3a8c] text-white hover:bg-[#252f73] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#2d3a8c]/30"
         >
           Bayar
           <span className="text-lg">›</span>

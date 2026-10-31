@@ -180,86 +180,69 @@ export default function DataTable({ data, onEdit, onDelete }: DataTableProps) {
       </div>
 
       {/* Mobile cards */}
-      <div className="md:hidden">
+      <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-700/50">
         {paginatedData.map((item, index) => (
           <div
             key={item.id}
-            className={`px-4 py-3 ${
-              index < paginatedData.length - 1
-                ? isDark
-                  ? "border-b border-slate-700/50"
-                  : "border-b border-slate-100"
-                : ""
-            }`}
+            className="px-4 py-3.5"
           >
             {/* Row 1: Image + Name + Actions */}
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className={`text-[11px] w-5 text-right flex-shrink-0 ${
-                    isDark ? "text-slate-600" : "text-slate-300"
-                  }`}
-                >
-                  {startIdx + index + 1}
-                </span>
-                {/* Product image */}
-                <div className={`w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 ${isDark ? "bg-slate-700" : "bg-slate-100"}`}>
-                  {item.gambar ? (
-                    <img src={item.gambar} alt={item.nama} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs">📦</div>
-                  )}
-                </div>
-                <span
-                  className={`text-sm font-semibold truncate ${
-                    isDark ? "text-white" : "text-slate-900"
-                  }`}
-                >
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 ${isDark ? "bg-slate-700" : "bg-slate-100"}`}>
+                {item.gambar ? (
+                  <img src={item.gambar} alt={item.nama} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-sm">📦</div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-semibold truncate ${isDark ? "text-white" : "text-slate-900"}`}>
                   {item.nama}
+                </p>
+                <span className={`inline-block text-[10px] font-medium px-1.5 py-0.5 rounded-md mt-0.5 ${badgeClass}`}>
+                  {item.kategori}
                 </span>
               </div>
               <div className="flex items-center gap-0.5 flex-shrink-0">
                 <button
                   onClick={() => onEdit(item)}
-                  className={`p-1.5 rounded-md ${
-                    isDark
-                      ? "text-slate-500 active:bg-slate-700"
-                      : "text-slate-400 active:bg-slate-100"
-                  }`}
+                  className={`p-2 rounded-lg ${isDark ? "text-slate-400 active:bg-slate-700" : "text-slate-400 active:bg-slate-100"}`}
                 >
-                  <Edit3 className="w-3.5 h-3.5" />
+                  <Edit3 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDelete(item.id)}
-                  className={`p-1.5 rounded-md ${
-                    isDark
-                      ? "text-slate-600 active:bg-slate-700"
-                      : "text-slate-300 active:bg-slate-100"
-                  }`}
+                  className={`p-2 rounded-lg ${isDark ? "text-slate-500 active:bg-slate-700" : "text-slate-400 active:bg-slate-100"}`}
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Row 2: Category + stok dus saja */}
-            <div className="flex items-center gap-2 ml-[52px]">
-              <span
-                className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${badgeClass}`}
-              >
-                {item.kategori}
-              </span>
-              <span
-                className={`text-[11px] font-medium ml-auto ${
-                  isDark ? "text-slate-300" : "text-slate-600"
-                }`}
-              >
-                {item.qty} dus
-              </span>
+            {/* Row 2: Stok + Harga Beli + Harga Jual + Subtotal */}
+            <div className={`grid grid-cols-4 gap-1 text-center rounded-xl px-2 py-2.5 ${isDark ? "bg-slate-700/50" : "bg-slate-50"}`}>
+              <div>
+                <p className={`text-[9px] font-medium uppercase tracking-wide ${isDark ? "text-slate-500" : "text-slate-400"}`}>Stok</p>
+                <p className={`text-[12px] font-bold mt-0.5 ${isDark ? "text-white" : "text-slate-800"}`}>{item.qty}</p>
+                <p className={`text-[9px] ${isDark ? "text-slate-500" : "text-slate-400"}`}>dus</p>
+              </div>
+              <div>
+                <p className={`text-[9px] font-medium uppercase tracking-wide ${isDark ? "text-slate-500" : "text-slate-400"}`}>Beli</p>
+                <p className={`text-[11px] font-semibold mt-0.5 ${isDark ? "text-slate-300" : "text-slate-600"}`}>{formatRupiah(item.hargaSatuan)}</p>
+              </div>
+              <div>
+                <p className={`text-[9px] font-medium uppercase tracking-wide ${isDark ? "text-slate-500" : "text-slate-400"}`}>Jual</p>
+                <p className={`text-[11px] font-semibold mt-0.5 ${isDark ? "text-green-400" : "text-green-600"}`}>{formatRupiah(item.hargaJual)}</p>
+              </div>
+              <div>
+                <p className={`text-[9px] font-medium uppercase tracking-wide ${isDark ? "text-slate-500" : "text-slate-400"}`}>Total</p>
+                <p className={`text-[11px] font-bold mt-0.5 ${isDark ? "text-blue-400" : "text-blue-600"}`}>{formatRupiah(getSubtotal(item))}</p>
+              </div>
             </div>
           </div>
         ))}
       </div>
+
 
       {/* Pagination */}
       {totalPages > 1 && (

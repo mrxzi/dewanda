@@ -47,6 +47,7 @@ export interface Transaksi {
   tanggal: string;
   waktu: string;
   namaCustomer: string;
+  alamat?: string;
   items: {
     namaBarang: string;
     gambar?: string;

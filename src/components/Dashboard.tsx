@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { Sun, Moon, Grid3X3, ListOrdered, BarChart3 } from "lucide-react";
-import { useTheme } from "./ThemeProvider";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { Grid3X3, ListOrdered, BarChart3 } from "lucide-react";
 import { useBarangStore } from "@/hooks/useBarangStore";
 import { useCartStore } from "@/hooks/useCartStore";
 import { useTransaksiStore } from "@/hooks/useTransaksiStore";
@@ -24,8 +23,6 @@ type AppView = "produk" | "transaksi" | "ringkasan";
 type SubView = "list" | "buat" | "checkout" | "payment" | "receipt";
 
 export default function Dashboard() {
-  const { theme, toggleTheme } = useTheme();
-  const isDark = theme === "dark";
   const store = useBarangStore();
   const cartStore = useCartStore();
   const transaksiStore = useTransaksiStore();
@@ -45,15 +42,20 @@ export default function Dashboard() {
 
   // Checkout / payment state
   const [checkoutCustomerName, setCheckoutCustomerName] = useState("");
+  const [checkoutAlamat, setCheckoutAlamat] = useState("");
   const [completedTransaksi, setCompletedTransaksi] = useState<Transaksi | null>(null);
 
   // Ringkasan date range
-  const [ringkasanStartDate, setRingkasanStartDate] = useState(() => {
+  const [ringkasanStartDate, setRingkasanStartDate] = useState<Date | null>(null);
+  const [ringkasanEndDate, setRingkasanEndDate] = useState<Date | null>(null);
+
+  // Initialize dates on client only (avoids Next.js prerender error)
+  useEffect(() => {
     const d = new Date();
     d.setDate(d.getDate() - 6);
-    return d;
-  });
-  const [ringkasanEndDate, setRingkasanEndDate] = useState(() => new Date());
+    setRingkasanStartDate(d);
+    setRingkasanEndDate(new Date());
+  }, []);
 
   const filteredData = useMemo(
     () => store.getFilteredData(search, kategoriFilter, sortOption),
@@ -88,8 +90,9 @@ export default function Dashboard() {
     setSubView("checkout");
   }, [cartStore.cart.length]);
 
-  const handleProceedToPayment = useCallback((customerName: string) => {
+  const handleProceedToPayment = useCallback((customerName: string, alamat: string) => {
     setCheckoutCustomerName(customerName);
+    setCheckoutAlamat(alamat);
     setSubView("payment");
   }, []);
 
@@ -100,6 +103,7 @@ export default function Dashboard() {
       tanggal: now.toISOString().slice(0, 10),
       waktu: now.toTimeString().slice(0, 5),
       namaCustomer: checkoutCustomerName,
+      alamat: checkoutAlamat || undefined,
       items: cartStore.cart.map((c) => ({
         namaBarang: c.barang.nama,
         gambar: c.barang.gambar,
@@ -126,7 +130,7 @@ export default function Dashboard() {
     setCompletedTransaksi(transaksi);
     cartStore.clearCart();
     setSubView("receipt");
-  }, [checkoutCustomerName, cartStore, store, transaksiStore]);
+  }, [checkoutCustomerName, checkoutAlamat, cartStore, store, transaksiStore]);
 
   const handleReceiptDone = useCallback(() => {
     setCompletedTransaksi(null);
@@ -139,15 +143,29 @@ export default function Dashboard() {
     setSubView("receipt");
   }, []);
 
-  // Ringkasan stats
+  // Ringkasan stats — handle null until dates are initialized on client
   const ringkasanStats = useMemo(
-    () => transaksiStore.getStatsForRange(ringkasanStartDate, ringkasanEndDate),
+    () => {
+      if (!ringkasanStartDate || !ringkasanEndDate) {
+        return {
+          totalTransaksi: 0,
+          totalPenjualanKotor: 0,
+          totalPenjualanBersih: 0,
+          totalKeuntungan: 0,
+          cashTotal: 0,
+          nonCashTotal: 0,
+          dailyData: [],
+          filteredTransaksi: [],
+        };
+      }
+      return transaksiStore.getStatsForRange(ringkasanStartDate, ringkasanEndDate);
+    },
     [transaksiStore, ringkasanStartDate, ringkasanEndDate]
   );
 
   if (!store.isLoaded) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? "bg-slate-950" : "bg-slate-50"}`}>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -205,28 +223,17 @@ export default function Dashboard() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors pb-20 ${isDark ? "bg-slate-900" : "bg-slate-50"}`}>
+    <div className="min-h-screen transition-colors pb-20 bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 py-5 sm:py-8">
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
           <div>
-            <h1 className={`text-lg sm:text-xl font-bold ${isDark ? "text-white" : "text-slate-900"}`}>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">
               {activeView === "produk" ? "Produk" : activeView === "transaksi" ? "Transaksi" : "Ringkasan"}
             </h1>
-            <p className={`text-xs ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+            <p className="text-xs mt-0.5 text-slate-400">
               {activeView === "produk" ? "Kelola Stok Barang" : activeView === "transaksi" ? "Riwayat Transaksi" : "Laporan Penjualan"}
             </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${isDark
-                ? "bg-slate-800 border border-slate-700 text-slate-400 hover:text-white"
-                : "bg-white border border-slate-200 text-slate-400 hover:text-slate-600 shadow-sm"
-                }`}
-            >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
           </div>
         </header>
 
@@ -271,7 +278,7 @@ export default function Dashboard() {
         )}
 
         {/* === RINGKASAN VIEW === */}
-        {activeView === "ringkasan" && (
+        {activeView === "ringkasan" && ringkasanStartDate && ringkasanEndDate && (
           <Ringkasan
             totalTransaksi={ringkasanStats.totalTransaksi}
             totalPenjualanKotor={ringkasanStats.totalPenjualanKotor}
@@ -288,45 +295,46 @@ export default function Dashboard() {
 
         {/* Footer */}
         <footer className="mt-6 text-center">
-          <p className={`text-[11px] ${isDark ? "text-slate-700" : "text-slate-300"}`}>
+          <p className="text-[11px] text-slate-300">
             © 2026 Dewanda Dashboard
           </p>
         </footer>
       </div>
 
       {/* Bottom Navigation */}
-      <nav className={`fixed bottom-0 left-0 right-0 z-30 border-t ${isDark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 border-t bg-white border-slate-200"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         <div className="max-w-5xl mx-auto flex">
-          <button
-            onClick={() => { setActiveView("produk"); setSubView("list"); }}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${activeView === "produk"
-                ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
-                : isDark ? "text-slate-500" : "text-slate-400"
-              }`}
-          >
-            <Grid3X3 className="w-5 h-5" />
-            Produk
-          </button>
-          <button
-            onClick={() => { setActiveView("transaksi"); setSubView("list"); }}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${activeView === "transaksi"
-                ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
-                : isDark ? "text-slate-500" : "text-slate-400"
-              }`}
-          >
-            <ListOrdered className="w-5 h-5" />
-            Transaksi
-          </button>
-          <button
-            onClick={() => { setActiveView("ringkasan"); setSubView("list"); }}
-            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${activeView === "ringkasan"
-                ? isDark ? "text-blue-400" : "text-[#2d3a8c]"
-                : isDark ? "text-slate-500" : "text-slate-400"
-              }`}
-          >
-            <BarChart3 className="w-5 h-5" />
-            Ringkasan
-          </button>
+          {(
+            [
+              { view: "produk" as AppView, icon: <Grid3X3 className="w-[22px] h-[22px]" />, label: "Produk" },
+              { view: "transaksi" as AppView, icon: <ListOrdered className="w-[22px] h-[22px]" />, label: "Transaksi" },
+              { view: "ringkasan" as AppView, icon: <BarChart3 className="w-[22px] h-[22px]" />, label: "Ringkasan" },
+            ] as const
+          ).map(({ view, icon, label }) => {
+            const isActive = activeView === view;
+            return (
+              <button
+                key={view}
+                onClick={() => { setActiveView(view); setSubView("list"); }}
+                className={`relative flex-1 flex flex-col items-center gap-1.5 py-4 text-xs font-semibold transition-all ${
+                  isActive
+                    ? "text-[#2d3a8c]"
+                    : "text-slate-400 hover:text-slate-600"
+                }`}
+              >
+                <span
+                  className={`absolute top-0 left-5 right-5 h-[2.5px] rounded-full transition-all duration-300 ${
+                    isActive ? "bg-[#2d3a8c]" : "opacity-0"
+                  }`}
+                />
+                {icon}
+                <span>{label}</span>
+              </button>
+            );
+          })}
         </div>
       </nav>
 

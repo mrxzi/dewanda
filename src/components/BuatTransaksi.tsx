@@ -155,14 +155,14 @@ export default function BuatTransaksi({
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center gap-3 rounded-xl border p-3 transition-opacity ${
+                  className={`flex items-center gap-4 rounded-2xl border p-3.5 transition-opacity ${
                     isDark
                       ? "bg-slate-800 border-slate-700"
                       : "bg-white border-slate-200 shadow-sm"
                   } ${habis ? "opacity-50 grayscale" : ""}`}
                 >
                   <div
-                    className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 ${
+                    className={`relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 ${
                       isDark ? "bg-slate-700" : "bg-slate-100"
                     }`}
                   >
@@ -186,21 +186,21 @@ export default function BuatTransaksi({
 
                   <div className="flex-1 min-w-0">
                     <p
-                      className={`text-sm font-semibold truncate ${
+                      className={`text-sm font-bold truncate ${
                         isDark ? "text-white" : "text-slate-900"
                       }`}
                     >
                       {item.nama}
                     </p>
                     <p
-                      className={`text-xs mt-0.5 ${
-                        isDark ? "text-slate-400" : "text-slate-500"
+                      className={`text-sm font-semibold mt-0.5 ${
+                        isDark ? "text-blue-400" : "text-blue-600"
                       }`}
                     >
                       {formatRupiah(item.hargaJual)}
                     </p>
                     {habis ? (
-                      <p className="text-xs font-medium text-red-500 mt-0.5">
+                      <p className="text-xs font-semibold text-red-500 mt-0.5">
                         Stok Habis
                       </p>
                     ) : (
@@ -215,22 +215,22 @@ export default function BuatTransaksi({
                   </div>
 
                   {!habis && (
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
                       <button
                         onClick={() =>
-                          onSetQuantity(item, Math.max(0, qtyInCart - 1))
+                          onSetQuantity(item, Math.min(item.qty, qtyInCart + 1))
                         }
-                        disabled={qtyInCart <= 0}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-30 ${
+                        disabled={qtyInCart >= item.qty}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center disabled:opacity-30 ${
                           isDark
                             ? "bg-slate-700 text-white"
                             : "bg-slate-100 text-slate-700"
                         }`}
                       >
-                        <Minus className="w-3.5 h-3.5" />
+                        <Plus className="w-4 h-4" />
                       </button>
                       <span
-                        className={`w-9 text-center text-sm font-semibold tabular-nums ${
+                        className={`w-8 text-center text-sm font-bold tabular-nums ${
                           isDark ? "text-white" : "text-slate-900"
                         }`}
                       >
@@ -238,19 +238,16 @@ export default function BuatTransaksi({
                       </span>
                       <button
                         onClick={() =>
-                          onSetQuantity(
-                            item,
-                            Math.min(item.qty, qtyInCart + 1)
-                          )
+                          onSetQuantity(item, Math.max(0, qtyInCart - 1))
                         }
-                        disabled={qtyInCart >= item.qty}
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-30 ${
+                        disabled={qtyInCart <= 0}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center disabled:opacity-30 ${
                           isDark
                             ? "bg-slate-700 text-white"
                             : "bg-slate-100 text-slate-700"
                         }`}
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Minus className="w-4 h-4" />
                       </button>
                     </div>
                   )}
@@ -263,19 +260,22 @@ export default function BuatTransaksi({
 
       {/* Keranjang bar */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-20 px-4 py-3 ${
-          isDark ? "bg-slate-900" : "bg-slate-100"
+        className={`fixed bottom-0 left-0 right-0 z-20 px-4 py-4 ${
+          isDark
+            ? "bg-slate-900 border-t border-slate-700/70"
+            : "bg-white border-t border-slate-200"
         }`}
+        style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
       >
         <button
           onClick={onOpenCart}
           disabled={totalItems === 0}
-          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold bg-[#2d3a8c] text-white hover:bg-[#252f73] disabled:opacity-40 transition-colors"
+          className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl text-sm font-bold bg-[#2d3a8c] text-white hover:bg-[#252f73] disabled:opacity-40 transition-all shadow-lg shadow-[#2d3a8c]/30"
         >
           <ShoppingCart className="w-5 h-5" />
           Keranjang
           {totalItems > 0 && (
-            <span className="ml-1 px-2 py-0.5 rounded-full bg-white/20 text-xs">
+            <span className="ml-1 px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-semibold">
               {totalItems} dus
             </span>
           )}
