@@ -57,7 +57,6 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
       "--------------------------------",
       "",
       "        Terima Kasih!",
-      "    Powered by NUSAJAYA",
       "================================",
     ];
 
@@ -199,13 +198,12 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-dashed pt-3 pb-1 text-center border-slate-300">
-              <p className="text-xs text-slate-500">Powered By</p>
+            <div className="border-t border-dashed pt-3 pb-2 text-center border-slate-300">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/logo.png"
-                alt="Logo"
-                className="inline-block h-[14px] w-auto mt-1"
+                src="/terimakasih.png"
+                alt="Terima Kasih"
+                className="inline-block h-[60px] w-auto"
               />
             </div>
           </div>
