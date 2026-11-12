@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
 import { CheckCircle, Share2, Download, Printer, Loader2 } from "lucide-react";
 import { Transaksi } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
@@ -126,16 +125,13 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
 
           <div className="px-5 py-4">
             {/* Store logo */}
-            <div className="flex items-center justify-center mb-4">
-              <div className="relative w-[120px] h-[120px] mx-auto">
-                <Image
-                  src="/logo.png"
-                  alt="Logo"
-                  fill
-                  sizes="120px"
-                  className="object-contain"
-                />
-              </div>
+            <div className="text-center mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="inline-block h-[120px] w-auto"
+              />
             </div>
 
             {/* Transaction details */}
@@ -203,11 +199,14 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-dashed pt-3 text-center border-slate-300">
+            <div className="border-t border-dashed pt-3 pb-1 text-center border-slate-300">
               <p className="text-xs text-slate-500">Powered By</p>
-              <p className="text-[10px] mt-2 text-slate-300">
-                <span className="font-bold text-blue-500">NUSAJAYA</span>
-              </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="inline-block h-[14px] w-auto mt-1"
+              />
             </div>
           </div>
 
