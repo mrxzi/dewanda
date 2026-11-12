@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { CheckCircle, Share2, Download, Printer, Loader2 } from "lucide-react";
 import { Transaksi } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils";
@@ -122,12 +123,16 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
           />
 
           <div className="px-5 py-4">
-            {/* Store name */}
-            <h3 className="text-center text-lg font-bold tracking-wider mb-4 text-slate-900"
-              style={{ fontFamily: "'Courier New', monospace" }}
-            >
-              TERIMA KASIH
-            </h3>
+            {/* Store logo */}
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/logo.png"
+                alt="Logo"
+                width={120}
+                height={120}
+                className="object-contain"
+              />
+            </div>
 
             {/* Transaction details */}
             <div className="border-t border-dashed py-3 space-y-1 text-xs border-slate-300 text-slate-500"
