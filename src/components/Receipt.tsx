@@ -37,17 +37,19 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
       "          NUSAJAYA",
       "================================",
       "",
-      `ID     : ${transaksi.id}`,
-      `Waktu  : ${transaksi.tanggal} ${transaksi.waktu}`,
       `Nama   : ${transaksi.namaCustomer || "-"}`,
       ...(transaksi.alamat ? [`Alamat : ${transaksi.alamat}`] : []),
+      `Tgl    : ${transaksi.tanggal}`,
+      `Waktu  : ${transaksi.waktu}`,
       `Kasir  : ${transaksi.kasir}`,
+      `ID     : ${transaksi.id}`,
       "--------------------------------",
       ...transaksi.items.flatMap(item => [
         item.namaBarang,
         `${item.jumlah} dus x ${new Intl.NumberFormat("id-ID").format(item.hargaJual)}     ${new Intl.NumberFormat("id-ID").format(item.subtotal)}`,
       ]),
       "--------------------------------",
+      `Total Dus    ${transaksi.items.reduce((sum: number, item: { jumlah: number }) => sum + item.jumlah, 0)} dus`,
       `Sub Total    Rp ${new Intl.NumberFormat("id-ID").format(transaksi.subtotal)}`,
       "--------------------------------",
       `Total        Rp ${new Intl.NumberFormat("id-ID").format(transaksi.total)}`,
@@ -124,27 +126,30 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
 
           <div className="px-5 py-4">
             {/* Store logo */}
-            <div className="flex justify-center mb-4">
-              <Image
-                src="/logo.png"
-                alt="Logo"
-                width={120}
-                height={120}
-                className="object-contain"
-              />
+            <div className="flex items-center justify-center mb-4">
+              <div className="relative w-[120px] h-[120px] mx-auto">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  fill
+                  sizes="120px"
+                  className="object-contain"
+                />
+              </div>
             </div>
 
             {/* Transaction details */}
             <div className="border-t border-dashed py-3 space-y-1 text-xs border-slate-300 text-slate-500"
               style={{ fontFamily: "'Courier New', monospace" }}
             >
-              <div className="flex justify-between"><span>ID</span><span>{transaksi.id}</span></div>
-              <div className="flex justify-between"><span>Waktu</span><span>{transaksi.tanggal} {transaksi.waktu}</span></div>
               <div className="flex justify-between"><span>Nama</span><span className="font-bold text-blue-500">{transaksi.namaCustomer || "-"}</span></div>
               {transaksi.alamat && (
                 <div className="flex justify-between"><span>Alamat</span><span className="text-right max-w-[55%] font-bold text-blue-500">{transaksi.alamat}</span></div>
               )}
+              <div className="flex justify-between"><span>Tanggal</span><span>{transaksi.tanggal}</span></div>
+              <div className="flex justify-between"><span>Waktu</span><span>{transaksi.waktu}</span></div>
               <div className="flex justify-between"><span>Kasir</span><span>{transaksi.kasir}</span></div>
+              <div className="flex justify-between"><span>ID</span><span>{transaksi.id}</span></div>
             </div>
 
             {/* Items */}
@@ -168,6 +173,10 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
             <div className="border-t border-dashed py-2 space-y-1 text-xs border-slate-300 text-slate-500"
               style={{ fontFamily: "'Courier New', monospace" }}
             >
+              <div className="flex justify-between">
+                <span>Total Dus</span>
+                <span>{transaksi.items.reduce((sum, item) => sum + item.jumlah, 0)} dus</span>
+              </div>
               <div className="flex justify-between">
                 <span>Sub Total</span>
                 <span>{formatRupiah(transaksi.subtotal)}</span>
