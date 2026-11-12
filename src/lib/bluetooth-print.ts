@@ -182,16 +182,12 @@ export async function buildReceiptEscPos(transaksi: Transaksi): Promise<Uint8Arr
   push(divider() + "\n");
   push("\n");
 
-  // Footer — Terimakasih image
+  // Footer — Powered by NUSAJAYA
   cmd(0x1b, 0x61, 0x01); // center
-  try {
-    const footerImg = await imageToEscPos("/terimakasih.png", 320);
-    parts.push(footerImg);
-  } catch {
-    cmd(0x1b, 0x45, 0x01); // bold
-    push("Terima Kasih!\n");
-    cmd(0x1b, 0x45, 0x00);
-  }
+  push("Powered by\n");
+  cmd(0x1b, 0x45, 0x01); // bold
+  push("NUSAJAYA\n");
+  cmd(0x1b, 0x45, 0x00);
   push("\n\n");
   cmd(0x1d, 0x56, 0x00); // full cut (jika ada)
   cmd(0x1b, 0x64, 0x02); // feed akhir singkat
