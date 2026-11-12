@@ -37,53 +37,56 @@ function formatNum(n: number): string {
 }
 
 /**
- * Load an image from a URL, draw it to a canvas scaled to the given max width,
+ * Load an image from a URL, draw it CENTERED on a full-paper-width canvas,
  * and return ESC/POS raster bitmap bytes (GS v 0).
  */
 async function imageToEscPos(
   src: string,
-  maxWidth: number = 384 // 58mm ≈ 384 dots at 203 DPI
+  imgMaxWidth: number = 256,
+  paperWidth: number = 384 // 58mm ≈ 384 dots at 203 DPI
 ): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
-      // Scale image to fit paper width while keeping aspect ratio
-      let w = img.width;
-      let h = img.height;
-      if (w > maxWidth) {
-        h = Math.round(h * (maxWidth / w));
-        w = maxWidth;
+      // Scale image to fit imgMaxWidth while keeping aspect ratio
+      let drawW = img.width;
+      let drawH = img.height;
+      if (drawW > imgMaxWidth) {
+        drawH = Math.round(drawH * (imgMaxWidth / drawW));
+        drawW = imgMaxWidth;
       }
-      // Width must be a multiple of 8 for ESC/POS raster
-      w = Math.ceil(w / 8) * 8;
+
+      // Canvas is full paper width so bitmap is centered by the printer
+      const canvasW = Math.ceil(paperWidth / 8) * 8; // must be multiple of 8
+      const canvasH = drawH;
 
       const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
+      canvas.width = canvasW;
+      canvas.height = canvasH;
       const ctx = canvas.getContext("2d")!;
       // White background
       ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, w, h);
-      // Draw centered
-      const offsetX = Math.round((w - (img.width > maxWidth ? w : img.width)) / 2);
-      ctx.drawImage(img, offsetX, 0, img.width > maxWidth ? w : img.width, h);
+      ctx.fillRect(0, 0, canvasW, canvasH);
+      // Draw image centered on the full-width canvas
+      const offsetX = Math.round((canvasW - drawW) / 2);
+      ctx.drawImage(img, offsetX, 0, drawW, drawH);
 
-      const imageData = ctx.getImageData(0, 0, w, h);
+      const imageData = ctx.getImageData(0, 0, canvasW, canvasH);
       const pixels = imageData.data;
 
-      const widthBytes = w / 8;
+      const widthBytes = canvasW / 8;
       // GS v 0 command: 1D 76 30 m xL xH yL yH d1...dk
       const header = new Uint8Array([
         0x1d, 0x76, 0x30, 0x00,
         widthBytes & 0xff, (widthBytes >> 8) & 0xff,
-        h & 0xff, (h >> 8) & 0xff,
+        canvasH & 0xff, (canvasH >> 8) & 0xff,
       ]);
 
-      const bitmapData = new Uint8Array(widthBytes * h);
-      for (let y = 0; y < h; y++) {
-        for (let x = 0; x < w; x++) {
-          const idx = (y * w + x) * 4;
+      const bitmapData = new Uint8Array(widthBytes * canvasH);
+      for (let y = 0; y < canvasH; y++) {
+        for (let x = 0; x < canvasW; x++) {
+          const idx = (y * canvasW + x) * 4;
           const r = pixels[idx];
           const g = pixels[idx + 1];
           const b = pixels[idx + 2];
@@ -179,14 +182,17 @@ export async function buildReceiptEscPos(transaksi: Transaksi): Promise<Uint8Arr
   push(divider() + "\n");
   push("\n");
 
-  // Footer — Powered by dekat dengan NUSAJAYA
+  // Footer — Powered by + logo kecil
   cmd(0x1b, 0x61, 0x01); // center
   push("Powered by\n");
-  cmd(0x1b, 0x45, 0x01); // bold
-  cmd(0x1d, 0x21, 0x01); // tinggi 2x
-  push("NUSAJAYA\n");
-  cmd(0x1d, 0x21, 0x00);
-  cmd(0x1b, 0x45, 0x00);
+  try {
+    const footerLogo = await imageToEscPos("/logo.png", 80);
+    parts.push(footerLogo);
+  } catch {
+    cmd(0x1b, 0x45, 0x01); // bold
+    push("NUSAJAYA\n");
+    cmd(0x1b, 0x45, 0x00);
+  }
   push("\n\n");
   cmd(0x1d, 0x56, 0x00); // full cut (jika ada)
   cmd(0x1b, 0x64, 0x02); // feed akhir singkat
