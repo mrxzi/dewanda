@@ -36,8 +36,80 @@ function formatNum(n: number): string {
   return new Intl.NumberFormat("id-ID").format(n);
 }
 
+/**
+ * Load an image from a URL, draw it to a canvas scaled to the given max width,
+ * and return ESC/POS raster bitmap bytes (GS v 0).
+ */
+async function imageToEscPos(
+  src: string,
+  maxWidth: number = 384 // 58mm ≈ 384 dots at 203 DPI
+): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      // Scale image to fit paper width while keeping aspect ratio
+      let w = img.width;
+      let h = img.height;
+      if (w > maxWidth) {
+        h = Math.round(h * (maxWidth / w));
+        w = maxWidth;
+      }
+      // Width must be a multiple of 8 for ESC/POS raster
+      w = Math.ceil(w / 8) * 8;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d")!;
+      // White background
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, w, h);
+      // Draw centered
+      const offsetX = Math.round((w - (img.width > maxWidth ? w : img.width)) / 2);
+      ctx.drawImage(img, offsetX, 0, img.width > maxWidth ? w : img.width, h);
+
+      const imageData = ctx.getImageData(0, 0, w, h);
+      const pixels = imageData.data;
+
+      const widthBytes = w / 8;
+      // GS v 0 command: 1D 76 30 m xL xH yL yH d1...dk
+      const header = new Uint8Array([
+        0x1d, 0x76, 0x30, 0x00,
+        widthBytes & 0xff, (widthBytes >> 8) & 0xff,
+        h & 0xff, (h >> 8) & 0xff,
+      ]);
+
+      const bitmapData = new Uint8Array(widthBytes * h);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const idx = (y * w + x) * 4;
+          const r = pixels[idx];
+          const g = pixels[idx + 1];
+          const b = pixels[idx + 2];
+          // Convert to grayscale and threshold
+          const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+          if (gray < 128) {
+            // Dark pixel = 1 (print)
+            const byteIndex = y * widthBytes + Math.floor(x / 8);
+            const bitIndex = 7 - (x % 8);
+            bitmapData[byteIndex] |= 1 << bitIndex;
+          }
+        }
+      }
+
+      const result = new Uint8Array(header.length + bitmapData.length);
+      result.set(header, 0);
+      result.set(bitmapData, header.length);
+      resolve(result);
+    };
+    img.onerror = () => reject(new Error("Gagal memuat gambar logo untuk cetak."));
+    img.src = src;
+  });
+}
+
 /** Build ESC/POS bytes for a Dewanda receipt (58mm). */
-export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
+export async function buildReceiptEscPos(transaksi: Transaksi): Promise<Uint8Array> {
   const parts: Uint8Array[] = [];
   const enc = encoder();
   const push = (s: string) => parts.push(enc.encode(s));
@@ -47,16 +119,20 @@ export function buildReceiptEscPos(transaksi: Transaksi): Uint8Array {
   cmd(0x1b, 0x40); // ESC @ init
   cmd(0x1b, 0x74, 0x00); // ESC t 0 — PC437
 
-  // Header: TERIMA KASIH
+  // Header: Logo image
   cmd(0x1b, 0x61, 0x01); // center
-  cmd(0x1b, 0x45, 0x01); // bold
-  cmd(0x1b, 0x47, 0x01); // double-strike
-  cmd(0x1d, 0x21, 0x11); // 2x lebar + 2x tinggi
-  push("TERIMA KASIH\n");
-  cmd(0x1d, 0x21, 0x00);
-  cmd(0x1b, 0x47, 0x00);
-  cmd(0x1b, 0x45, 0x00);
-  push("\n"); // jarak kecil di bawah judul
+  try {
+    const logoBitmap = await imageToEscPos("/logo.png", 256);
+    parts.push(logoBitmap);
+  } catch {
+    // Fallback to text if image fails
+    cmd(0x1b, 0x45, 0x01); // bold
+    cmd(0x1d, 0x21, 0x11); // 2x width + 2x height
+    push("NUSAJAYA\n");
+    cmd(0x1d, 0x21, 0x00);
+    cmd(0x1b, 0x45, 0x00);
+  }
+  push("\n"); // space below logo
   cmd(0x1b, 0x61, 0x00); // left
   push(divider("=") + "\n");
   push("\n"); // napas sebelum detail
@@ -274,7 +350,7 @@ export async function printReceiptBluetooth(
 ): Promise<PrintBluetoothResult> {
   try {
     const characteristic = await connectPrinter();
-    const payload = buildReceiptEscPos(transaksi);
+    const payload = await buildReceiptEscPos(transaksi);
     await writeChunks(characteristic, payload);
     return { ok: true };
   } catch (err) {

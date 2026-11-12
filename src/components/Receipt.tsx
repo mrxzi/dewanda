@@ -34,7 +34,7 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
     // Create a text receipt and download it
     const lines = [
       "================================",
-      "         TERIMA KASIH",
+      "          NUSAJAYA",
       "================================",
       "",
       `ID     : ${transaksi.id}`,
