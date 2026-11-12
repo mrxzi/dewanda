@@ -42,13 +42,13 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
       `Waktu  : ${transaksi.waktu}`,
       `Kasir  : ${transaksi.kasir}`,
       `ID     : ${transaksi.id}`,
+      `T.Dus  : ${transaksi.items.reduce((sum: number, item: { jumlah: number }) => sum + item.jumlah, 0)} dus`,
       "--------------------------------",
       ...transaksi.items.flatMap(item => [
         item.namaBarang,
         `${item.jumlah} dus x ${new Intl.NumberFormat("id-ID").format(item.hargaJual)}     ${new Intl.NumberFormat("id-ID").format(item.subtotal)}`,
       ]),
       "--------------------------------",
-      `Total Dus    ${transaksi.items.reduce((sum: number, item: { jumlah: number }) => sum + item.jumlah, 0)} dus`,
       `Sub Total    Rp ${new Intl.NumberFormat("id-ID").format(transaksi.subtotal)}`,
       "--------------------------------",
       `Total        Rp ${new Intl.NumberFormat("id-ID").format(transaksi.total)}`,
@@ -145,6 +145,7 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
               <div className="flex justify-between"><span>Waktu</span><span>{transaksi.waktu}</span></div>
               <div className="flex justify-between"><span>Kasir</span><span>{transaksi.kasir}</span></div>
               <div className="flex justify-between"><span>ID</span><span>{transaksi.id}</span></div>
+              <div className="flex justify-between"><span>Total Dus</span><span>{transaksi.items.reduce((sum, item) => sum + item.jumlah, 0)} dus</span></div>
             </div>
 
             {/* Items */}
@@ -168,10 +169,6 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
             <div className="border-t border-dashed py-2 space-y-1 text-xs border-slate-300 text-slate-500"
               style={{ fontFamily: "'Courier New', monospace" }}
             >
-              <div className="flex justify-between">
-                <span>Total Dus</span>
-                <span>{transaksi.items.reduce((sum, item) => sum + item.jumlah, 0)} dus</span>
-              </div>
               <div className="flex justify-between">
                 <span>Sub Total</span>
                 <span>{formatRupiah(transaksi.subtotal)}</span>

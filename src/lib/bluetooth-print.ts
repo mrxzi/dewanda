@@ -148,6 +148,8 @@ export async function buildReceiptEscPos(transaksi: Transaksi): Promise<Uint8Arr
   push(`Waktu  : ${transaksi.waktu}\n`);
   push(`Kasir  : ${transaksi.kasir}\n`);
   push(`ID     : ${transaksi.id}\n`);
+  const totalDus = transaksi.items.reduce((sum, item) => sum + item.jumlah, 0);
+  push(`T.Dus  : ${totalDus} dus\n`);
   push("\n");
   push(divider() + "\n");
   push("\n");
@@ -165,8 +167,6 @@ export async function buildReceiptEscPos(transaksi: Transaksi): Promise<Uint8Arr
 
   push(divider() + "\n");
   push("\n");
-  const totalDus = transaksi.items.reduce((sum, item) => sum + item.jumlah, 0);
-  push(row("Total Dus", `${totalDus} dus`) + "\n");
   push(row("Sub Total", `Rp ${formatNum(transaksi.subtotal)}`) + "\n");
   push("\n");
   push(divider() + "\n");
