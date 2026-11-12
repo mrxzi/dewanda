@@ -203,7 +203,7 @@ export default function Receipt({ transaksi, onDone }: ReceiptProps) {
               <img
                 src="/terimakasih.png"
                 alt="Terima Kasih"
-                className="inline-block h-[60px] w-auto"
+                className="inline-block h-[100px] w-auto"
               />
             </div>
           </div>

@@ -185,7 +185,7 @@ export async function buildReceiptEscPos(transaksi: Transaksi): Promise<Uint8Arr
   // Footer — Terimakasih image
   cmd(0x1b, 0x61, 0x01); // center
   try {
-    const footerImg = await imageToEscPos("/terimakasih.png", 200);
+    const footerImg = await imageToEscPos("/terimakasih.png", 320);
     parts.push(footerImg);
   } catch {
     cmd(0x1b, 0x45, 0x01); // bold
